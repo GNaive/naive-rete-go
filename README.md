@@ -1,6 +1,6 @@
 # naive-rete-go
 golang RETE algorithm implement
 
-### See also
+### see also
 - [naive-rete for Python](https://github.com/GNaive/naive-rete)
 
