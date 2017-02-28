@@ -1,8 +1,8 @@
 package rete
 
 import (
-	"testing"
 	"container/list"
+	"testing"
 )
 
 func Test_beta_memory_items(t *testing.T) {

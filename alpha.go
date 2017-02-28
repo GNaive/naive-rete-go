@@ -5,15 +5,15 @@ import (
 )
 
 type AlphaMemory struct {
-	items *list.List
+	items      *list.List
 	successors *list.List
 }
 
 type ConstantTestNode struct {
-	field_to_test int
+	field_to_test    int
 	field_must_equal string
-	output_memory *AlphaMemory
-	children *list.List
+	output_memory    *AlphaMemory
+	children         *list.List
 }
 
 func (node ConstantTestNode) activation(w *WME) {

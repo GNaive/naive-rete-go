@@ -6,12 +6,12 @@ import (
 )
 
 type WME struct {
-	fields [3]string
+	fields     [3]string
 	alpha_mems *list.List
-	tokens *list.List
+	tokens     *list.List
 }
 
-func RemoveWme (w *WME) {
+func RemoveWme(w *WME) {
 	for e := w.alpha_mems.Front(); e != nil; e = e.Next() {
 		amem := e.Value.(*AlphaMemory)
 		remove_by_value(amem.items, w)
@@ -26,17 +26,16 @@ func RemoveWme (w *WME) {
 
 func CreateWME(id, attr, value string) WME {
 	return WME{
-		fields: [3]string{id, attr, value},
+		fields:     [3]string{id, attr, value},
 		alpha_mems: list.New(),
-		tokens: list.New(),
+		tokens:     list.New(),
 	}
 }
 
-func (wme *WME) Equal (w *WME) bool {
+func (wme *WME) Equal(w *WME) bool {
 	return wme.fields == w.fields
 }
 
-func (wme *WME) String () string {
+func (wme *WME) String() string {
 	return fmt.Sprintf("%s", wme.fields)
 }
-

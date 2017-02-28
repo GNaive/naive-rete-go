@@ -1,17 +1,17 @@
 package rete
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestNetworkAddWME(t *testing.T) {
 	n := CreateNetwork()
-	c0 := CreateCondition("$x", "on", "$y")
-	c1 := CreateCondition("$y", "left_of", "$z")
+	c0 := CreateHas("$x", "on", "$y")
+	c1 := CreateHas("$y", "left_of", "$z")
 	am0 := n.build_or_share_alpha_memory(c0)
 	am1 := n.build_or_share_alpha_memory(c1)
-	wmes := []WME {
+	wmes := []WME{
 		CreateWME("B1", "on", "B2"),
 		CreateWME("B2", "left_of", "B3"),
 		CreateWME("B2", "on", "table"),
@@ -26,11 +26,11 @@ func TestNetworkAddWME(t *testing.T) {
 
 func TestCase0(t *testing.T) {
 	n := CreateNetwork()
-	c0 := CreateCondition("$x", "on", "$y")
-	c1 := CreateCondition("$y", "left_of", "$z")
-	c2 := CreateCondition("$z", "color", "red")
-	p := n.AddProduction([]Condition{c0, c1, c2})
-	wmes := []WME {
+	c0 := CreateHas("$x", "on", "$y")
+	c1 := CreateHas("$y", "left_of", "$z")
+	c2 := CreateHas("$z", "color", "red")
+	p := n.AddProduction(CreateRule(c0, c1, c2))
+	wmes := []WME{
 		CreateWME("B1", "on", "B2"),
 		CreateWME("B1", "on", "B3"),
 		CreateWME("B1", "color", "red"),
@@ -62,7 +62,7 @@ func TestCase0(t *testing.T) {
 	expect := "<Token [B1 on B2], [B2 left_of B3], [B3 color red]>"
 	for e := p.get_items().Front(); e != nil; e = e.Next() {
 		tok := e.Value.(*Token)
-		if fmt.Sprint(tok) !=  expect {
+		if fmt.Sprint(tok) != expect {
 			t.Error("error result")
 		}
 	}
