@@ -20,11 +20,11 @@ func (node BetaMemory) get_parent() IReteNode {
 func (node BetaMemory) get_children() *list.List {
 	return node.children
 }
-func (node BetaMemory) left_activation(t *Token, w *WME) {
+func (node *BetaMemory) left_activation(t *Token, w *WME) {
 	new_token := make_token(node, t, w)
-	node.items.PushBack(&new_token)
+	node.items.PushBack(new_token)
 	for e := node.children.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).left_activation(&new_token, nil)
+		e.Value.(IReteNode).left_activation(new_token, nil)
 	}
 }
 func (node BetaMemory) right_activation(w *WME) {

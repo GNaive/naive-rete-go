@@ -34,6 +34,12 @@ func CreateHas(id, attr, value string) Has {
 		negative: false,
 	}
 }
+func CreateNeg(id, attr, value string) Has {
+	return Has{
+		fields:   [3]string{id, attr, value},
+		negative: true,
+	}
+}
 func CreateRule(items ...interface{}) Rule {
 	return Rule{
 		items: items,

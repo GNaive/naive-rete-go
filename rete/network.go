@@ -60,6 +60,10 @@ func (n Network) build_or_share_network_for_conditions(
 				tests := n.get_join_tests_from_condition(cond, conds_higher_up)
 				am := n.build_or_share_alpha_memory(cond)
 				current_node = n.build_or_share_join_node(current_node, am, tests)
+			} else {
+				tests := n.get_join_tests_from_condition(cond, conds_higher_up)
+				am := n.build_or_share_alpha_memory(cond)
+				current_node = n.build_or_share_negative_node(current_node, am, tests)
 			}
 		}
 		conds_higher_up.items = append(conds_higher_up.items, cond)
@@ -99,6 +103,28 @@ func (n Network) build_or_share_join_node(parent IReteNode, amem *AlphaMemory, t
 	}
 	parent.get_children().PushBack(node)
 	amem.successors.PushBack(node)
+	return node
+}
+func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemory, tests *list.List) IReteNode {
+	for e := parent.get_children().Front(); e != nil; e = e.Next() {
+		if e.Value.(IReteNode).get_node_type() != NEGATIVE_NODE {
+			continue
+		}
+		node := e.Value.(*NegativeNode)
+		if node.amem == amem && node.tests == tests {
+			return node
+		}
+	}
+	node := &NegativeNode{
+		parent:   parent,
+		children: list.New(),
+		amem:     amem,
+		tests:    tests,
+		items:    list.New(),
+	}
+	parent.get_children().PushBack(node)
+	amem.successors.PushBack(node)
+	n.update_new_node_with_matches_above(node)
 	return node
 }
 func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
@@ -184,5 +210,10 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 			parent.right_activation(w)
 		}
 		parent.children = saved_children
+	case NEGATIVE_NODE:
+		for e := parent.get_items().Front(); e != nil; e = e.Next() {
+			t := e.Value.(*Token)
+			node.left_activation(t, nil)
+		}
 	}
 }

@@ -1,6 +1,8 @@
 package rete
 
-import "container/list"
+import (
+	"container/list"
+)
 
 func contain(l *list.List, value interface{}) *list.Element {
 	if l == nil {
@@ -14,8 +16,10 @@ func contain(l *list.List, value interface{}) *list.Element {
 	return nil
 }
 
-func remove_by_value(l *list.List, value interface{}) {
+func remove_by_value(l *list.List, value interface{}) bool {
 	if e := contain(l, value); e != nil {
 		l.Remove(e)
+		return true
 	}
+	return false
 }
