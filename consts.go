@@ -1,7 +1,7 @@
 package rete
 
 const (
-	IDENTIFIER  = iota
+	IDENTIFIER = iota
 	ATTRIBUTE
 	VALUE
 	NO_TEST
@@ -9,7 +9,7 @@ const (
 
 const (
 	BETA_MEMORY_NODE = "beta_memory"
-	JOIN_NODE = "join_node"
+	JOIN_NODE        = "join_node"
 )
 
 var FIELDS = []int{IDENTIFIER, ATTRIBUTE, VALUE}

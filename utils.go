@@ -2,7 +2,7 @@ package rete
 
 import "container/list"
 
-func contain (l *list.List, value interface{}) *list.Element {
+func contain(l *list.List, value interface{}) *list.Element {
 	if l == nil {
 		return nil
 	}
@@ -14,7 +14,7 @@ func contain (l *list.List, value interface{}) *list.Element {
 	return nil
 }
 
-func remove_by_value (l *list.List, value interface{}) {
+func remove_by_value(l *list.List, value interface{}) {
 	if e := contain(l, value); e != nil {
 		l.Remove(e)
 	}

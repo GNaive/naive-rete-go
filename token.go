@@ -7,13 +7,14 @@ import (
 )
 
 type Token struct {
-	parent *Token
-	wme *WME
-	node IReteNode
+	parent   *Token
+	wme      *WME
+	node     IReteNode
 	children *list.List
 }
+
 func (t *Token) get_wmes() []*WME {
-	ret := []*WME {}
+	ret := []*WME{}
 	_ws := list.New()
 	_ws.PushFront(t.wme)
 	for t.parent != nil {
@@ -25,7 +26,7 @@ func (t *Token) get_wmes() []*WME {
 	}
 	return ret
 }
-func make_token (node IReteNode, parent *Token, w *WME) Token {
+func make_token(node IReteNode, parent *Token, w *WME) Token {
 	tok := Token{parent: parent, wme: w, node: node, children: list.New()}
 	if parent != nil {
 		parent.children.PushBack(tok)
@@ -44,7 +45,7 @@ func (tok *Token) delete_token_and_descendents() {
 	remove_by_value(tok.wme.tokens, tok)
 	remove_by_value(tok.parent.children, tok)
 }
-func (tok Token) String () string {
+func (tok Token) String() string {
 	ret := []string{}
 	wmes := tok.get_wmes()
 	for _, v := range wmes {

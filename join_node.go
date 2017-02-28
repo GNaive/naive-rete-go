@@ -3,31 +3,31 @@ package rete
 import "container/list"
 
 type TestAtJoinNode struct {
-	field_of_arg1 int
+	field_of_arg1            int
 	condition_number_of_arg2 int
-	field_of_arg2 int
+	field_of_arg2            int
 }
 
 type JoinNode struct {
-	parent IReteNode
+	parent   IReteNode
 	children *list.List
-	amem *AlphaMemory
-	tests *list.List
+	amem     *AlphaMemory
+	tests    *list.List
 }
 
-func (node JoinNode) get_node_type () string {
+func (node JoinNode) get_node_type() string {
 	return JOIN_NODE
 }
-func (node JoinNode) get_items () *list.List {
+func (node JoinNode) get_items() *list.List {
 	return nil
 }
-func (node JoinNode) get_parent () IReteNode {
+func (node JoinNode) get_parent() IReteNode {
 	return node.parent
 }
-func (node JoinNode) get_children () *list.List {
+func (node JoinNode) get_children() *list.List {
 	return node.children
 }
-func (node *JoinNode) right_activation (w *WME) {
+func (node *JoinNode) right_activation(w *WME) {
 	parent := node.parent
 	// dummy join
 	if parent.get_parent().get_node_type() == BETA_MEMORY_NODE {
@@ -47,7 +47,7 @@ func (node *JoinNode) right_activation (w *WME) {
 		}
 	}
 }
-func (node *JoinNode) left_activation (t *Token, w *WME) {
+func (node *JoinNode) left_activation(t *Token, w *WME) {
 	for e := node.amem.items.Front(); e != nil; e = e.Next() {
 		w := e.Value.(*WME)
 		if node.perform_join_tests(t, w) {

@@ -5,64 +5,64 @@ import (
 )
 
 type IReteNode interface {
-	get_node_type () string
-	get_items () *list.List
-	get_parent () IReteNode
-	get_children () *list.List
-	left_activation (t *Token, w *WME)
-	right_activation (w *WME)
+	get_node_type() string
+	get_items() *list.List
+	get_parent() IReteNode
+	get_children() *list.List
+	left_activation(t *Token, w *WME)
+	right_activation(w *WME)
 }
 
 type Network struct {
 	alpha_root *ConstantTestNode
-	beta_root IReteNode
+	beta_root  IReteNode
 }
-func CreateNetwork () Network {
+
+func CreateNetwork() Network {
 	work_memory := &AlphaMemory{
-		items: list.New(),
+		items:      list.New(),
 		successors: list.New(),
 	}
 	alpha_root := &ConstantTestNode{
-		field_to_test: NO_TEST,
+		field_to_test:    NO_TEST,
 		field_must_equal: "",
-		output_memory: work_memory,
-		children: list.New(),
+		output_memory:    work_memory,
+		children:         list.New(),
 	}
 	beta_root := &BetaMemory{
-		items: list.New(),
-		parent: nil,
+		items:    list.New(),
+		parent:   nil,
 		children: list.New(),
 	}
 	return Network{
-		alpha_root:alpha_root,
-		beta_root: beta_root,
+		alpha_root: alpha_root,
+		beta_root:  beta_root,
 	}
 }
-func CreateCondition(id, attr, value string) Condition {
-	return Condition{
-		fields: [3]string{id, attr, value},
-		negative: false,
-	}
-}
-func (n Network) AddProduction (lhs []Condition) IReteNode {
-	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, []Condition{})
+
+func (n Network) AddProduction(lhs Rule) IReteNode {
+	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, Rule{})
 	return n.build_or_share_beta_memory(current_node)
 }
-func (n Network) AddWME (w *WME) {
+func (n Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)
 }
 func (n Network) build_or_share_network_for_conditions(
-	parent IReteNode, conds []Condition, earlier_conds []Condition) IReteNode {
+	parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 	current_node := parent
 	conds_higher_up := earlier_conds
-	for _, cond := range conds {
-		if !cond.negative {
-			current_node = n.build_or_share_beta_memory(current_node)
-			tests := n.get_join_tests_from_condition(cond, conds_higher_up)
-			am := n.build_or_share_alpha_memory(cond)
-			current_node = n.build_or_share_join_node(current_node, am, tests)
+	for _, cond := range rule.items {
+		switch cond.(type) {
+		case Has:
+			cond := cond.(Has)
+			if !cond.negative {
+				current_node = n.build_or_share_beta_memory(current_node)
+				tests := n.get_join_tests_from_condition(cond, conds_higher_up)
+				am := n.build_or_share_alpha_memory(cond)
+				current_node = n.build_or_share_join_node(current_node, am, tests)
+			}
 		}
-		conds_higher_up = append(conds_higher_up, cond)
+		conds_higher_up.items = append(conds_higher_up.items, cond)
 	}
 	return current_node
 }
@@ -73,8 +73,8 @@ func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 		}
 	}
 	node := &BetaMemory{
-		items: list.New(),
-		parent: parent,
+		items:    list.New(),
+		parent:   parent,
 		children: list.New(),
 	}
 	parent.get_children().PushBack(node)
@@ -91,17 +91,17 @@ func (n Network) build_or_share_join_node(parent IReteNode, amem *AlphaMemory, t
 			return node
 		}
 	}
-	node := &JoinNode {
-		parent: parent,
+	node := &JoinNode{
+		parent:   parent,
 		children: list.New(),
-		amem: amem,
-		tests: tests,
+		amem:     amem,
+		tests:    tests,
 	}
 	parent.get_children().PushBack(node)
 	amem.successors.PushBack(node)
 	return node
 }
-func (n Network) build_or_share_alpha_memory(c Condition) *AlphaMemory {
+func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	current_node := n.alpha_root
 	for field, sym := range c.fields {
 		if sym[0] != '$' {
@@ -112,7 +112,7 @@ func (n Network) build_or_share_alpha_memory(c Condition) *AlphaMemory {
 		return current_node.output_memory
 	}
 	am := &AlphaMemory{
-		items: list.New(),
+		items:      list.New(),
 		successors: list.New(),
 	}
 	current_node.output_memory = am
@@ -124,7 +124,7 @@ func (n Network) build_or_share_alpha_memory(c Condition) *AlphaMemory {
 	}
 	return am
 }
-func (n Network) build_or_share_constant_test_node (
+func (n Network) build_or_share_constant_test_node(
 	parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
 	for e := parent.children.Front(); e != nil; e = e.Next() {
 		child := e.Value.(*ConstantTestNode)
@@ -132,28 +132,32 @@ func (n Network) build_or_share_constant_test_node (
 			return child
 		}
 	}
-	node := &ConstantTestNode {
-		field_to_test: field,
+	node := &ConstantTestNode{
+		field_to_test:    field,
 		field_must_equal: symbol,
-		output_memory: nil,
-		children: list.New(),
+		output_memory:    nil,
+		children:         list.New(),
 	}
 	parent.children.PushBack(node)
 	return node
 }
-func (n Network) get_join_tests_from_condition(c Condition, earlier_conds []Condition) *list.List {
+func (n Network) get_join_tests_from_condition(c Has, earlier_conds Rule) *list.List {
 	ret := list.New()
 	for v_field1, v := range c.fields {
-		if v[0] != '$' {
+		if !is_var(v) {
 			continue
 		}
-		for cond_idx, cond := range earlier_conds {
-			v_field2 := cond.contain(v)
-			if v_field2 == -1 || cond.negative {
-				continue
+		for cond_idx, cond := range earlier_conds.items {
+			switch cond.(type) {
+			case Has:
+				cond := cond.(Has)
+				v_field2 := cond.contain(v)
+				if v_field2 == -1 || cond.negative {
+					continue
+				}
+				node := &TestAtJoinNode{v_field1, cond_idx, v_field2}
+				ret.PushBack(node)
 			}
-			node := &TestAtJoinNode{v_field1, cond_idx, v_field2}
-			ret.PushBack(node)
 		}
 	}
 	return ret
@@ -172,7 +176,7 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 	case JOIN_NODE:
 		parent := parent.(*JoinNode)
 		saved_children := parent.children
-		hack_children :=  list.New()
+		hack_children := list.New()
 		hack_children.PushBack(node)
 		parent.children = hack_children
 		for e := parent.amem.items.Front(); e != nil; e = e.Next() {

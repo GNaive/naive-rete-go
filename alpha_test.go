@@ -1,27 +1,27 @@
 package rete
 
 import (
-	"testing"
 	"container/list"
+	"testing"
 )
 
-func Test_constant_test_node_activation(t *testing.T)  {
+func Test_constant_test_node_activation(t *testing.T) {
 	mem := &AlphaMemory{
-		items: list.New(),
+		items:      list.New(),
 		successors: list.New(),
 	}
 	node := ConstantTestNode{
-		field_to_test: IDENTIFIER,
+		field_to_test:    IDENTIFIER,
 		field_must_equal: "B1",
-		output_memory: mem,
-		children: list.New(),
+		output_memory:    mem,
+		children:         list.New(),
 	}
 	w0 := &WME{
-		fields: [3]string{"B1", "color", "red"},
+		fields:     [3]string{"B1", "color", "red"},
 		alpha_mems: list.New(),
 	}
 	w1 := &WME{
-		fields: [3]string{"B2", "color", "red"},
+		fields:     [3]string{"B2", "color", "red"},
 		alpha_mems: list.New(),
 	}
 
