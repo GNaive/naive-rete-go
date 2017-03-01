@@ -67,3 +67,28 @@ func TestCase0(t *testing.T) {
 		}
 	}
 }
+
+func TestNegativeNode(t *testing.T) {
+	n := CreateNetwork()
+	c0 := CreateHas("$x", "on", "$y")
+	c1 := CreateNeg("$y", "color", "blue")
+	p := n.AddProduction(CreateRule(c0, c1))
+
+	wmes := []WME{
+		CreateWME("B1", "on", "B2"),
+		CreateWME("B1", "on", "B3"),
+		CreateWME("B2", "color", "blue"),
+		CreateWME("B3", "color", "red"),
+	}
+	for idx := range wmes {
+		n.AddWME(&wmes[idx])
+	}
+
+	expect := "<Token [B1 on B3], <nil>>"
+	for e := p.get_items().Front(); e != nil; e = e.Next() {
+		tok := e.Value.(*Token)
+		if fmt.Sprint(tok) != expect {
+			t.Error("error result")
+		}
+	}
+}

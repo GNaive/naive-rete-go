@@ -7,10 +7,11 @@ import (
 )
 
 type Token struct {
-	parent   *Token
-	wme      *WME
-	node     IReteNode
-	children *list.List
+	parent       *Token
+	wme          *WME
+	node         IReteNode
+	children     *list.List
+	join_results *list.List
 }
 
 func (t *Token) get_wmes() []*WME {
@@ -26,12 +27,14 @@ func (t *Token) get_wmes() []*WME {
 	}
 	return ret
 }
-func make_token(node IReteNode, parent *Token, w *WME) Token {
-	tok := Token{parent: parent, wme: w, node: node, children: list.New()}
+func make_token(node IReteNode, parent *Token, w *WME) *Token {
+	tok := &Token{parent: parent, wme: w, node: node, children: list.New()}
 	if parent != nil {
 		parent.children.PushBack(tok)
 	}
-	w.tokens.PushBack(tok)
+	if w != nil {
+		w.tokens.PushBack(tok)
+	}
 	return tok
 }
 func (tok *Token) delete_token_and_descendents() {
@@ -42,8 +45,12 @@ func (tok *Token) delete_token_and_descendents() {
 		tok.children.Remove(e)
 	}
 	remove_by_value(tok.node.get_items(), tok)
-	remove_by_value(tok.wme.tokens, tok)
-	remove_by_value(tok.parent.children, tok)
+	if tok.wme != nil {
+		//remove_by_value(tok.wme.tokens, tok)
+	}
+	if tok.parent != nil {
+		//remove_by_value(tok.parent.children, tok)
+	}
 }
 func (tok Token) String() string {
 	ret := []string{}
