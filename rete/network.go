@@ -48,7 +48,7 @@ func (n Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)
 }
 func (n Network) build_or_share_network_for_conditions(
-	parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
+parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 	current_node := parent
 	conds_higher_up := earlier_conds
 	for _, cond := range rule.items {
@@ -65,10 +65,45 @@ func (n Network) build_or_share_network_for_conditions(
 				am := n.build_or_share_alpha_memory(cond)
 				current_node = n.build_or_share_negative_node(current_node, am, tests)
 			}
+		case Rule:
+			cond := cond.(Rule)
+			if cond.negative {
+				current_node = n.build_or_share_ncc_nodes(current_node, cond, conds_higher_up)
+			}
 		}
 		conds_higher_up.items = append(conds_higher_up.items, cond)
 	}
 	return current_node
+}
+func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc Rule, earlier Rule) IReteNode {
+	bottom_of_subnetwork := n.build_or_share_network_for_conditions(parent, ncc, earlier)
+	for e := parent.get_children().Front(); e != nil; e = e.Next() {
+		child := e.Value.(IReteNode)
+		if child.get_node_type() == NCC_NODE {
+			child := child.(*NccNode)
+			if child.partner.parent == bottom_of_subnetwork {
+				return child
+			}
+		}
+	}
+	ncc_node := &NccNode{
+		parent:   parent,
+		children: list.New(),
+		items:    list.New(),
+	}
+	ncc_partner_node := &NccPartnerNode{
+		parent:              bottom_of_subnetwork,
+		children:            list.New(),
+		new_result_buffer:   list.New(),
+		number_of_conjuncts: len(ncc.items),
+		ncc_node:            ncc_node,
+	}
+	ncc_node.partner = ncc_partner_node
+	parent.get_children().PushBack(ncc_node)
+	bottom_of_subnetwork.get_children().PushBack(ncc_partner_node)
+	n.update_new_node_with_matches_above(ncc_node)
+	n.update_new_node_with_matches_above(ncc_partner_node)
+	return ncc_node
 }
 func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 	for e := parent.get_children().Front(); e != nil; e = e.Next() {
@@ -151,7 +186,7 @@ func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	return am
 }
 func (n Network) build_or_share_constant_test_node(
-	parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
+parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
 	for e := parent.children.Front(); e != nil; e = e.Next() {
 		child := e.Value.(*ConstantTestNode)
 		if child.field_to_test == field && child.field_must_equal == symbol {
@@ -211,6 +246,11 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 		}
 		parent.children = saved_children
 	case NEGATIVE_NODE:
+		for e := parent.get_items().Front(); e != nil; e = e.Next() {
+			t := e.Value.(*Token)
+			node.left_activation(t, nil)
+		}
+	case NCC_NODE:
 		for e := parent.get_items().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
 			node.left_activation(t, nil)
