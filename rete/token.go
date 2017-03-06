@@ -11,7 +11,9 @@ type Token struct {
 	wme          *WME
 	node         IReteNode
 	children     *list.List
-	join_results *list.List
+	join_results *list.List // used in negative nodes
+	ncc_results  *list.List
+	owner        *Token
 }
 
 func (t *Token) get_wmes() []*WME {
@@ -46,10 +48,10 @@ func (tok *Token) delete_token_and_descendents() {
 	}
 	remove_by_value(tok.node.get_items(), tok)
 	if tok.wme != nil {
-		//remove_by_value(tok.wme.tokens, tok)
+		remove_by_value(tok.wme.tokens, tok)
 	}
 	if tok.parent != nil {
-		//remove_by_value(tok.parent.children, tok)
+		remove_by_value(tok.parent.children, tok)
 	}
 }
 func (tok Token) String() string {
