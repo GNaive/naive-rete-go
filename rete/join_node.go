@@ -13,6 +13,7 @@ type JoinNode struct {
 	children *list.List
 	amem     *AlphaMemory
 	tests    *list.List
+	has      *Has
 }
 
 func (node JoinNode) get_node_type() string {
@@ -31,29 +32,32 @@ func (node *JoinNode) right_activation(w *WME) {
 	parent := node.parent
 	// dummy join
 	if parent.get_parent().get_node_type() == BETA_MEMORY_NODE {
+		b := node.make_binding(w)
 		for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 			child := _e.Value.(IReteNode)
-			child.left_activation(nil, w)
+			child.left_activation(nil, w, b)
 		}
 		return
 	}
 	for e := parent.get_items().Front(); e != nil; e = e.Next() {
 		t := e.Value.(*Token)
 		if node.perform_join_tests(t, w) {
+			b := node.make_binding(w)
 			for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 				child := _e.Value.(IReteNode)
-				child.left_activation(t, w)
+				child.left_activation(t, w, b)
 			}
 		}
 	}
 }
-func (node *JoinNode) left_activation(t *Token, w *WME) {
+func (node *JoinNode) left_activation(t *Token, w *WME, b Binding) {
 	for e := node.amem.items.Front(); e != nil; e = e.Next() {
 		w := e.Value.(*WME)
 		if node.perform_join_tests(t, w) {
+			b := node.make_binding(w)
 			for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 				child := _e.Value.(IReteNode)
-				child.left_activation(t, w)
+				child.left_activation(t, w, b)
 			}
 		}
 	}
@@ -69,4 +73,13 @@ func (node *JoinNode) perform_join_tests(t *Token, w *WME) bool {
 		}
 	}
 	return true
+}
+func (node *JoinNode) make_binding(w *WME) Binding {
+	b := make(Binding)
+	for idx, v := range node.has.fields {
+		if is_var(v) {
+			b[v] = w.fields[idx]
+		}
+	}
+	return b
 }

@@ -28,8 +28,8 @@ func (node NegativeNode) get_items() *list.List {
 func (node *NegativeNode) get_children() *list.List {
 	return node.children
 }
-func (node *NegativeNode) left_activation(t *Token, w *WME) {
-	new_token := make_token(node, t, w)
+func (node *NegativeNode) left_activation(t *Token, w *WME, b Binding) {
+	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 
 	new_token.join_results = list.New()
@@ -48,7 +48,7 @@ func (node *NegativeNode) left_activation(t *Token, w *WME) {
 	if new_token.join_results.Len() == 0 {
 		for e := node.children.Front(); e != nil; e = e.Next() {
 			child := e.Value.(IReteNode)
-			child.left_activation(new_token, nil)
+			child.left_activation(new_token, nil, nil)
 		}
 	}
 }

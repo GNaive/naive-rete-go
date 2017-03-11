@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+type Binding map[string]string
+
 type Token struct {
 	parent       *Token
 	wme          *WME
@@ -14,6 +16,7 @@ type Token struct {
 	join_results *list.List // used in negative nodes
 	ncc_results  *list.List
 	owner        *Token
+	binding      Binding
 }
 
 func (t *Token) get_wmes() []*WME {
@@ -29,8 +32,14 @@ func (t *Token) get_wmes() []*WME {
 	}
 	return ret
 }
-func make_token(node IReteNode, parent *Token, w *WME) *Token {
-	tok := &Token{parent: parent, wme: w, node: node, children: list.New()}
+func make_token(node IReteNode, parent *Token, w *WME, b Binding) *Token {
+	tok := &Token{
+		parent: parent,
+		wme: w,
+		node: node,
+		children: list.New(),
+		binding: b,
+	}
 	if parent != nil {
 		parent.children.PushBack(tok)
 	}
@@ -62,4 +71,18 @@ func (tok Token) String() string {
 		ret = append(ret, s)
 	}
 	return fmt.Sprintf("<Token %s>", strings.Join(ret, ", "))
+}
+func (tok *Token) GetBinding(k string) string {
+	t := tok
+	v := ""
+	if t.binding != nil {
+		v = t.binding[k]
+	}
+	for len(v) == 0 && t.parent != nil {
+		t = t.parent
+		if t.binding != nil {
+			v = t.binding[k]
+		}
+	}
+	return v
 }

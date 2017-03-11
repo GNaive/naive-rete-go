@@ -21,8 +21,8 @@ func (node NccNode) get_items() *list.List {
 func (node NccNode) get_children() *list.List {
 	return node.children
 }
-func (node NccNode) left_activation(t *Token, w *WME) {
-	new_token := make_token(node, t, w)
+func (node NccNode) left_activation(t *Token, w *WME, b Binding) {
+	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 
 	new_token.ncc_results = list.New()
@@ -37,7 +37,7 @@ func (node NccNode) left_activation(t *Token, w *WME) {
 		return
 	}
 	for e := node.children.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).left_activation(new_token, nil)
+		e.Value.(IReteNode).left_activation(new_token, nil, nil)
 	}
 }
 func (node NccNode) right_activation(w *WME) {
