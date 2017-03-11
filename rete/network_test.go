@@ -65,6 +65,10 @@ func TestCase0(t *testing.T) {
 		if fmt.Sprint(tok) != expect {
 			t.Error("error result")
 		}
+		x, y, z := tok.GetBinding("$x"), tok.GetBinding("$y"), tok.GetBinding("$z")
+		if x != "B1" || y != "B2" || z != "B3" {
+			t.Error("error binding")
+		}
 	}
 }
 
@@ -89,6 +93,10 @@ func TestNegativeNode(t *testing.T) {
 		tok := e.Value.(*Token)
 		if fmt.Sprint(tok) != expect {
 			t.Error("error result")
+		}
+		x, y := tok.GetBinding("$x"), tok.GetBinding("$y")
+		if x != "B1" || y != "B3" {
+			t.Error("error binding")
 		}
 	}
 }
@@ -119,6 +127,10 @@ func TestNccNode(t *testing.T) {
 		tok := e.Value.(*Token)
 		if fmt.Sprint(tok) != expect {
 			t.Error("error")
+		}
+		x, y := tok.GetBinding("$x"), tok.GetBinding("$y")
+		if x != "B1" || y != "B3" {
+			t.Error("error binding")
 		}
 	}
 }

@@ -9,7 +9,7 @@ type IReteNode interface {
 	get_items() *list.List
 	get_parent() IReteNode
 	get_children() *list.List
-	left_activation(t *Token, w *WME)
+	left_activation(t *Token, w *WME, b Binding)
 	right_activation(w *WME)
 }
 
@@ -59,7 +59,7 @@ parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 				current_node = n.build_or_share_beta_memory(current_node)
 				tests := n.get_join_tests_from_condition(cond, conds_higher_up)
 				am := n.build_or_share_alpha_memory(cond)
-				current_node = n.build_or_share_join_node(current_node, am, tests)
+				current_node = n.build_or_share_join_node(current_node, am, tests, &cond)
 			} else {
 				tests := n.get_join_tests_from_condition(cond, conds_higher_up)
 				am := n.build_or_share_alpha_memory(cond)
@@ -120,7 +120,8 @@ func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 	n.update_new_node_with_matches_above(node)
 	return node
 }
-func (n Network) build_or_share_join_node(parent IReteNode, amem *AlphaMemory, tests *list.List) IReteNode {
+func (n Network) build_or_share_join_node(
+parent IReteNode, amem *AlphaMemory, tests *list.List, h *Has) IReteNode {
 	for e := parent.get_children().Front(); e != nil; e = e.Next() {
 		if e.Value.(IReteNode).get_node_type() != JOIN_NODE {
 			continue
@@ -135,6 +136,7 @@ func (n Network) build_or_share_join_node(parent IReteNode, amem *AlphaMemory, t
 		children: list.New(),
 		amem:     amem,
 		tests:    tests,
+		has:      h,
 	}
 	parent.get_children().PushBack(node)
 	amem.successors.PushBack(node)
@@ -232,7 +234,7 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 	case BETA_MEMORY_NODE:
 		for e := parent.get_items().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil)
+			node.left_activation(t, nil, nil)
 		}
 	case JOIN_NODE:
 		parent := parent.(*JoinNode)
@@ -248,12 +250,12 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 	case NEGATIVE_NODE:
 		for e := parent.get_items().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil)
+			node.left_activation(t, nil, nil)
 		}
 	case NCC_NODE:
 		for e := parent.get_items().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil)
+			node.left_activation(t, nil, nil)
 		}
 	}
 }
