@@ -30,3 +30,6 @@ func (node *BetaMemory) LeftActivation(t *Token, w *WME, b Binding) {
 }
 func (node BetaMemory) RightActivation(w *WME) {
 }
+func (node BetaMemory) GetExecuteParam(s string) interface{} {
+	return node.execute_params[s]
+}

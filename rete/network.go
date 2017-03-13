@@ -40,14 +40,14 @@ func CreateNetwork() Network {
 	}
 }
 
-func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) IReteNode {
+func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) *BetaMemory {
 	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, Rule{})
 	pnode := n.build_or_share_beta_memory(current_node)
 	pnode.(*BetaMemory).execute_params = rhs
-	return pnode
+	return pnode.(*BetaMemory)
 }
-func (n Network) AddProductionFromXML(s string) []IReteNode {
-	result := []IReteNode{}
+func (n Network) AddProductionFromXML(s string) []*BetaMemory {
+	result := []*BetaMemory{}
 	ps := FromXML(s)
 	for _, p := range ps {
 		result = append(result, n.AddProduction(p.lhs, p.rhs))
