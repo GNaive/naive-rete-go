@@ -17,7 +17,7 @@ func Test_make_token(t *testing.T) {
 		tokens:     list.New(),
 	}
 	token := make_token(&node, nil, w, nil)
-	if token.node.get_node_type() != BETA_MEMORY_NODE {
+	if token.node.GetNodeType() != BETA_MEMORY_NODE {
 		t.Error("token node type error")
 	}
 	if token.wme != w {

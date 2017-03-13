@@ -5,12 +5,12 @@ import (
 )
 
 type IReteNode interface {
-	get_node_type() string
-	get_items() *list.List
-	get_parent() IReteNode
-	get_children() *list.List
-	left_activation(t *Token, w *WME, b Binding)
-	right_activation(w *WME)
+	GetNodeType() string
+	GetItems() *list.List
+	GetParent() IReteNode
+	GetChildren() *list.List
+	LeftActivation(t *Token, w *WME, b Binding)
+	RightActivation(w *WME)
 }
 
 type Network struct {
@@ -40,15 +40,25 @@ func CreateNetwork() Network {
 	}
 }
 
-func (n Network) AddProduction(lhs Rule) IReteNode {
+func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) IReteNode {
 	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, Rule{})
-	return n.build_or_share_beta_memory(current_node)
+	pnode := n.build_or_share_beta_memory(current_node)
+	pnode.(*BetaMemory).execute_params = rhs
+	return pnode
+}
+func (n Network) AddProductionFromXML(s string) []IReteNode {
+	result := []IReteNode{}
+	ps := FromXML(s)
+	for _, p := range ps {
+		result = append(result, n.AddProduction(p.lhs, p.rhs))
+	}
+	return result
 }
 func (n Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)
 }
 func (n Network) build_or_share_network_for_conditions(
-parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
+	parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 	current_node := parent
 	conds_higher_up := earlier_conds
 	for _, cond := range rule.items {
@@ -65,6 +75,9 @@ parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 				am := n.build_or_share_alpha_memory(cond)
 				current_node = n.build_or_share_negative_node(current_node, am, tests)
 			}
+		case Filter:
+			cond := cond.(Filter)
+			current_node = n.build_or_share_filter_node(current_node, cond)
 		case Rule:
 			cond := cond.(Rule)
 			if cond.negative {
@@ -75,11 +88,29 @@ parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
 	}
 	return current_node
 }
+func (n Network) build_or_share_filter_node(parent IReteNode, f Filter) IReteNode {
+	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
+		child := e.Value.(IReteNode)
+		if child.GetNodeType() == FILTER_NODE {
+			child := child.(*FilterNode)
+			if child.tmpl == f.tmpl {
+				return child
+			}
+		}
+	}
+	filter_node := &FilterNode{
+		parent:   parent,
+		children: list.New(),
+		tmpl:     f.tmpl,
+	}
+	parent.GetChildren().PushBack(filter_node)
+	return filter_node
+}
 func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc Rule, earlier Rule) IReteNode {
 	bottom_of_subnetwork := n.build_or_share_network_for_conditions(parent, ncc, earlier)
-	for e := parent.get_children().Front(); e != nil; e = e.Next() {
+	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
 		child := e.Value.(IReteNode)
-		if child.get_node_type() == NCC_NODE {
+		if child.GetNodeType() == NCC_NODE {
 			child := child.(*NccNode)
 			if child.partner.parent == bottom_of_subnetwork {
 				return child
@@ -99,15 +130,15 @@ func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc Rule, earlier Ru
 		ncc_node:            ncc_node,
 	}
 	ncc_node.partner = ncc_partner_node
-	parent.get_children().PushBack(ncc_node)
-	bottom_of_subnetwork.get_children().PushBack(ncc_partner_node)
+	parent.GetChildren().PushBack(ncc_node)
+	bottom_of_subnetwork.GetChildren().PushBack(ncc_partner_node)
 	n.update_new_node_with_matches_above(ncc_node)
 	n.update_new_node_with_matches_above(ncc_partner_node)
 	return ncc_node
 }
 func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
-	for e := parent.get_children().Front(); e != nil; e = e.Next() {
-		if e.Value.(IReteNode).get_node_type() == BETA_MEMORY_NODE {
+	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
+		if e.Value.(IReteNode).GetNodeType() == BETA_MEMORY_NODE {
 			return e.Value.(IReteNode)
 		}
 	}
@@ -116,14 +147,14 @@ func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 		parent:   parent,
 		children: list.New(),
 	}
-	parent.get_children().PushBack(node)
+	parent.GetChildren().PushBack(node)
 	n.update_new_node_with_matches_above(node)
 	return node
 }
 func (n Network) build_or_share_join_node(
-parent IReteNode, amem *AlphaMemory, tests *list.List, h *Has) IReteNode {
-	for e := parent.get_children().Front(); e != nil; e = e.Next() {
-		if e.Value.(IReteNode).get_node_type() != JOIN_NODE {
+	parent IReteNode, amem *AlphaMemory, tests *list.List, h *Has) IReteNode {
+	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
+		if e.Value.(IReteNode).GetNodeType() != JOIN_NODE {
 			continue
 		}
 		node := e.Value.(*JoinNode)
@@ -138,13 +169,13 @@ parent IReteNode, amem *AlphaMemory, tests *list.List, h *Has) IReteNode {
 		tests:    tests,
 		has:      h,
 	}
-	parent.get_children().PushBack(node)
+	parent.GetChildren().PushBack(node)
 	amem.successors.PushBack(node)
 	return node
 }
 func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemory, tests *list.List) IReteNode {
-	for e := parent.get_children().Front(); e != nil; e = e.Next() {
-		if e.Value.(IReteNode).get_node_type() != NEGATIVE_NODE {
+	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
+		if e.Value.(IReteNode).GetNodeType() != NEGATIVE_NODE {
 			continue
 		}
 		node := e.Value.(*NegativeNode)
@@ -159,7 +190,7 @@ func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemor
 		tests:    tests,
 		items:    list.New(),
 	}
-	parent.get_children().PushBack(node)
+	parent.GetChildren().PushBack(node)
 	amem.successors.PushBack(node)
 	n.update_new_node_with_matches_above(node)
 	return node
@@ -188,7 +219,7 @@ func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	return am
 }
 func (n Network) build_or_share_constant_test_node(
-parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
+	parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
 	for e := parent.children.Front(); e != nil; e = e.Next() {
 		child := e.Value.(*ConstantTestNode)
 		if child.field_to_test == field && child.field_must_equal == symbol {
@@ -226,15 +257,15 @@ func (n Network) get_join_tests_from_condition(c Has, earlier_conds Rule) *list.
 	return ret
 }
 func (n Network) update_new_node_with_matches_above(node IReteNode) {
-	parent := node.get_parent()
+	parent := node.GetParent()
 	if parent == nil {
 		return
 	}
-	switch parent.get_node_type() {
+	switch parent.GetNodeType() {
 	case BETA_MEMORY_NODE:
-		for e := parent.get_items().Front(); e != nil; e = e.Next() {
+		for e := parent.GetItems().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil, nil)
+			node.LeftActivation(t, nil, nil)
 		}
 	case JOIN_NODE:
 		parent := parent.(*JoinNode)
@@ -244,18 +275,18 @@ func (n Network) update_new_node_with_matches_above(node IReteNode) {
 		parent.children = hack_children
 		for e := parent.amem.items.Front(); e != nil; e = e.Next() {
 			w := e.Value.(*WME)
-			parent.right_activation(w)
+			parent.RightActivation(w)
 		}
 		parent.children = saved_children
 	case NEGATIVE_NODE:
-		for e := parent.get_items().Front(); e != nil; e = e.Next() {
+		for e := parent.GetItems().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil, nil)
+			node.LeftActivation(t, nil, nil)
 		}
 	case NCC_NODE:
-		for e := parent.get_items().Front(); e != nil; e = e.Next() {
+		for e := parent.GetItems().Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Token)
-			node.left_activation(t, nil, nil)
+			node.LeftActivation(t, nil, nil)
 		}
 	}
 }

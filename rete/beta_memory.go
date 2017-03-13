@@ -3,29 +3,30 @@ package rete
 import "container/list"
 
 type BetaMemory struct {
-	items    *list.List
-	parent   IReteNode
-	children *list.List
+	items          *list.List
+	parent         IReteNode
+	children       *list.List
+	execute_params map[string]interface{} //use BetaMemory as PNode
 }
 
-func (node BetaMemory) get_node_type() string {
+func (node BetaMemory) GetNodeType() string {
 	return BETA_MEMORY_NODE
 }
-func (node BetaMemory) get_items() *list.List {
+func (node BetaMemory) GetItems() *list.List {
 	return node.items
 }
-func (node BetaMemory) get_parent() IReteNode {
+func (node BetaMemory) GetParent() IReteNode {
 	return node.parent
 }
-func (node BetaMemory) get_children() *list.List {
+func (node BetaMemory) GetChildren() *list.List {
 	return node.children
 }
-func (node *BetaMemory) left_activation(t *Token, w *WME, b Binding) {
+func (node *BetaMemory) LeftActivation(t *Token, w *WME, b Binding) {
 	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 	for e := node.children.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).left_activation(new_token, nil, nil)
+		e.Value.(IReteNode).LeftActivation(new_token, nil, nil)
 	}
 }
-func (node BetaMemory) right_activation(w *WME) {
+func (node BetaMemory) RightActivation(w *WME) {
 }

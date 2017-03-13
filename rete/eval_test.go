@@ -1,10 +1,9 @@
 package rete
 
 import (
-	"testing"
 	"go/parser"
+	"testing"
 )
-
 
 func TestEval(t *testing.T) {
 	exp, _ := parser.ParseExpr("1 > 2")

@@ -34,6 +34,6 @@ func (node *AlphaMemory) activation(w *WME) {
 	node.items.PushBack(w)
 	w.alpha_mems.PushBack(node)
 	for e := node.successors.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).right_activation(w)
+		e.Value.(IReteNode).RightActivation(w)
 	}
 }
