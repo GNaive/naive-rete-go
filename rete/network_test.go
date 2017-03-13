@@ -177,6 +177,8 @@ func TestFromXML(t *testing.T) {
 			t.Error(val)
 		}
 	}
+	if p0.GetExecuteParam("action") != "block" {t.Error()}
+	if p0.GetExecuteParam("dummy") != nil {t.Error()}
 	if p1.GetItems().Len() > 0 {
 		t.Error()
 	}
