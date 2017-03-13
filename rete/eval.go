@@ -1,12 +1,19 @@
 package rete
 
 import (
-	"go/token"
 	"go/ast"
+	"go/parser"
+	"go/token"
 	"strconv"
 )
 
-
+func EvalFromString(s string) interface{} {
+	exp, err := parser.ParseExpr(s)
+	if err != nil {
+		return false
+	}
+	return Eval(exp)
+}
 func Eval(exp ast.Expr) interface{} {
 	switch exp := exp.(type) {
 	case *ast.BinaryExpr:
@@ -55,6 +62,8 @@ func EvalBinaryExpr(exp *ast.BinaryExpr) interface{} {
 		return left.(float64) >= right.(float64)
 	case token.LEQ:
 		return left.(float64) <= right.(float64)
+	case token.EQL:
+		return left.(float64) == right.(float64)
 	case token.ADD:
 		return left.(float64) + right.(float64)
 	case token.SUB:

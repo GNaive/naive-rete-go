@@ -27,9 +27,9 @@ func RemoveWME(w *WME) {
 		jr := e.Value.(*NegativeJoinResult)
 		remove_by_value(jr.owner.join_results, jr)
 		if jr.owner.join_results.Len() == 0 {
-			for i := jr.owner.node.get_children().Front(); i != nil; i = i.Next() {
+			for i := jr.owner.node.GetChildren().Front(); i != nil; i = i.Next() {
 				child := i.Value.(IReteNode)
-				child.left_activation(jr.owner, nil, nil)
+				child.LeftActivation(jr.owner, nil, nil)
 			}
 		}
 	}

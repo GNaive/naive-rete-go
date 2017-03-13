@@ -9,19 +9,19 @@ type NccNode struct {
 	partner  *NccPartnerNode
 }
 
-func (node NccNode) get_node_type() string {
+func (node NccNode) GetNodeType() string {
 	return NCC_NODE
 }
-func (node NccNode) get_parent() IReteNode {
+func (node NccNode) GetParent() IReteNode {
 	return node.parent
 }
-func (node NccNode) get_items() *list.List {
+func (node NccNode) GetItems() *list.List {
 	return node.items
 }
-func (node NccNode) get_children() *list.List {
+func (node NccNode) GetChildren() *list.List {
 	return node.children
 }
-func (node NccNode) left_activation(t *Token, w *WME, b Binding) {
+func (node NccNode) LeftActivation(t *Token, w *WME, b Binding) {
 	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 
@@ -37,8 +37,8 @@ func (node NccNode) left_activation(t *Token, w *WME, b Binding) {
 		return
 	}
 	for e := node.children.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).left_activation(new_token, nil, nil)
+		e.Value.(IReteNode).LeftActivation(new_token, nil, nil)
 	}
 }
-func (node NccNode) right_activation(w *WME) {
+func (node NccNode) RightActivation(w *WME) {
 }

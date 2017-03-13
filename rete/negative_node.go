@@ -16,19 +16,19 @@ type NegativeNode struct {
 	tests    *list.List
 }
 
-func (node NegativeNode) get_node_type() string {
+func (node NegativeNode) GetNodeType() string {
 	return NEGATIVE_NODE
 }
-func (node NegativeNode) get_parent() IReteNode {
+func (node NegativeNode) GetParent() IReteNode {
 	return node.parent
 }
-func (node NegativeNode) get_items() *list.List {
+func (node NegativeNode) GetItems() *list.List {
 	return node.items
 }
-func (node *NegativeNode) get_children() *list.List {
+func (node *NegativeNode) GetChildren() *list.List {
 	return node.children
 }
-func (node *NegativeNode) left_activation(t *Token, w *WME, b Binding) {
+func (node *NegativeNode) LeftActivation(t *Token, w *WME, b Binding) {
 	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 
@@ -48,11 +48,11 @@ func (node *NegativeNode) left_activation(t *Token, w *WME, b Binding) {
 	if new_token.join_results.Len() == 0 {
 		for e := node.children.Front(); e != nil; e = e.Next() {
 			child := e.Value.(IReteNode)
-			child.left_activation(new_token, nil, nil)
+			child.LeftActivation(new_token, nil, nil)
 		}
 	}
 }
-func (node *NegativeNode) right_activation(w *WME) {
+func (node *NegativeNode) RightActivation(w *WME) {
 	for e := node.items.Front(); e != nil; e = e.Next() {
 		t := e.Value.(*Token)
 		if node.perform_join_tests(t, w) {

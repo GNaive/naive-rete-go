@@ -10,19 +10,19 @@ type NccPartnerNode struct {
 	new_result_buffer   *list.List
 }
 
-func (node NccPartnerNode) get_node_type() string {
+func (node NccPartnerNode) GetNodeType() string {
 	return NCC_PARTNER_NODE
 }
-func (node NccPartnerNode) get_parent() IReteNode {
+func (node NccPartnerNode) GetParent() IReteNode {
 	return node.parent
 }
-func (node NccPartnerNode) get_items() *list.List {
+func (node NccPartnerNode) GetItems() *list.List {
 	return nil
 }
-func (node NccPartnerNode) get_children() *list.List {
+func (node NccPartnerNode) GetChildren() *list.List {
 	return node.children
 }
-func (node NccPartnerNode) left_activation(t *Token, w *WME, b Binding) {
+func (node NccPartnerNode) LeftActivation(t *Token, w *WME, b Binding) {
 	ncc_node := node.ncc_node
 	new_result := make_token(node, t, w, b)
 	owners_t := t
@@ -31,7 +31,7 @@ func (node NccPartnerNode) left_activation(t *Token, w *WME, b Binding) {
 		owners_w = owners_t.wme
 		owners_t = owners_t.parent
 	}
-	for e := ncc_node.get_items().Front(); e != nil; e = e.Next() {
+	for e := ncc_node.GetItems().Front(); e != nil; e = e.Next() {
 		item := e.Value.(*Token)
 		if item.parent == owners_t && item.wme == owners_w {
 			item.ncc_results.PushBack(item)
@@ -42,5 +42,5 @@ func (node NccPartnerNode) left_activation(t *Token, w *WME, b Binding) {
 	}
 	node.new_result_buffer.PushBack(new_result)
 }
-func (node NccPartnerNode) right_activation(w *WME) {
+func (node NccPartnerNode) RightActivation(w *WME) {
 }

@@ -1,5 +1,9 @@
 package rete
 
+type Production struct {
+	lhs Rule
+	rhs map[string]interface{}
+}
 type Rule struct {
 	items    []interface{}
 	negative bool
@@ -7,6 +11,9 @@ type Rule struct {
 type Has struct {
 	fields   [3]string
 	negative bool
+}
+type Filter struct {
+	tmpl string
 }
 
 func (has Has) contain(s string) int {

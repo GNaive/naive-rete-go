@@ -13,6 +13,7 @@ const (
 	NEGATIVE_NODE    = "negative_node"
 	NCC_NODE         = "ncc_node"
 	NCC_PARTNER_NODE = "ncc_parter_node"
+	FILTER_NODE      = "filter_node"
 )
 
 var FIELDS = []int{IDENTIFIER, ATTRIBUTE, VALUE}

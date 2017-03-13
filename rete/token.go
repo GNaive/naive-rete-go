@@ -34,11 +34,11 @@ func (t *Token) get_wmes() []*WME {
 }
 func make_token(node IReteNode, parent *Token, w *WME, b Binding) *Token {
 	tok := &Token{
-		parent: parent,
-		wme: w,
-		node: node,
+		parent:   parent,
+		wme:      w,
+		node:     node,
 		children: list.New(),
-		binding: b,
+		binding:  b,
 	}
 	if parent != nil {
 		parent.children.PushBack(tok)
@@ -55,7 +55,7 @@ func (tok *Token) delete_token_and_descendents() {
 		child.delete_token_and_descendents()
 		tok.children.Remove(e)
 	}
-	remove_by_value(tok.node.get_items(), tok)
+	remove_by_value(tok.node.GetItems(), tok)
 	if tok.wme != nil {
 		remove_by_value(tok.wme.tokens, tok)
 	}
@@ -85,4 +85,19 @@ func (tok *Token) GetBinding(k string) string {
 		}
 	}
 	return v
+}
+func (tok *Token) AllBinding() Binding {
+	path := []*Token{}
+	t := tok
+	for t != nil {
+		path = append(path, t)
+		t = t.parent
+	}
+	result := make(Binding)
+	for _, t := range path {
+		for k, v := range t.binding {
+			result[k] = v
+		}
+	}
+	return result
 }
