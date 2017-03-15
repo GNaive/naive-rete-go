@@ -46,13 +46,15 @@ func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) *BetaMemory
 	pnode.(*BetaMemory).ExecuteParams = rhs
 	return pnode.(*BetaMemory)
 }
-func (n Network) AddProductionFromXML(s string) []*BetaMemory {
-	result := []*BetaMemory{}
-	ps := FromXML(s)
+func (n Network) AddProductionFromXML(s string) (result []*BetaMemory, err error) {
+	ps, err := FromXML(s)
+	if err != nil {
+		return result, err
+	}
 	for _, p := range ps {
 		result = append(result, n.AddProduction(p.lhs, p.rhs))
 	}
-	return result
+	return result, nil
 }
 func (n Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)

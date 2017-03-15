@@ -158,7 +158,11 @@ func TestFromXML(t *testing.T) {
 	</data>
 	`
 	n := CreateNetwork()
-	pnodes := n.AddProductionFromXML(data)
+	pnodes, err := n.AddProductionFromXML(data)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	p0 := pnodes[0]
 	p1 := pnodes[1]
 
