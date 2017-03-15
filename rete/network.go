@@ -43,7 +43,7 @@ func CreateNetwork() Network {
 func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) *BetaMemory {
 	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, Rule{})
 	pnode := n.build_or_share_beta_memory(current_node)
-	pnode.(*BetaMemory).execute_params = rhs
+	pnode.(*BetaMemory).ExecuteParams = rhs
 	return pnode.(*BetaMemory)
 }
 func (n Network) AddProductionFromXML(s string) []*BetaMemory {
