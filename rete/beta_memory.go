@@ -3,10 +3,10 @@ package rete
 import "container/list"
 
 type BetaMemory struct {
-	items          *list.List
-	parent         IReteNode
-	children       *list.List
-	execute_params map[string]interface{} //use BetaMemory as PNode
+	items         *list.List
+	parent        IReteNode
+	children      *list.List
+	ExecuteParams map[string]interface{} //use BetaMemory as PNode
 }
 
 func (node BetaMemory) GetNodeType() string {
@@ -31,5 +31,5 @@ func (node *BetaMemory) LeftActivation(t *Token, w *WME, b Binding) {
 func (node BetaMemory) RightActivation(w *WME) {
 }
 func (node BetaMemory) GetExecuteParam(s string) interface{} {
-	return node.execute_params[s]
+	return node.ExecuteParams[s]
 }
