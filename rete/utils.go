@@ -25,12 +25,14 @@ func remove_by_value(l *list.List, value interface{}) bool {
 	return false
 }
 
-func FromXML(s string) []Production {
+func FromXML(s string) (result []Production, err error) {
 	doc := etree.NewDocument()
-	doc.ReadFromString(s)
+	err = doc.ReadFromString(s)
+	if err != nil {
+		return result, err
+	}
 	root := doc.Root()
 
-	result := []Production{}
 	for _, ep := range root.ChildElements() {
 		if ep.Tag != "production" {continue}
 		p := Production{
@@ -47,7 +49,7 @@ func FromXML(s string) []Production {
 		}
 		result = append(result, p)
 	}
-	return result
+	return result, nil
 }
 
 func parse_lhs(root *etree.Element) Rule {
