@@ -3,6 +3,7 @@ package rete
 import (
 	"container/list"
 	"github.com/beevik/etree"
+	"errors"
 )
 
 func contain(l *list.List, value interface{}) *list.Element {
@@ -32,6 +33,9 @@ func FromXML(s string) (result []Production, err error) {
 		return result, err
 	}
 	root := doc.Root()
+	if root == nil {
+		return result, errors.New("Not XML")
+	}
 
 	for _, ep := range root.ChildElements() {
 		if ep.Tag != "production" {continue}
