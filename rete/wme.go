@@ -35,8 +35,8 @@ func RemoveWME(w *WME) {
 	}
 }
 
-func CreateWME(class_name, id, attr, value string) WME {
-	return WME{
+func CreateWME(class_name, id, attr, value string) *WME {
+	return &WME{
 		fields:                [4]string{class_name, id, attr, value},
 		alpha_mems:            list.New(),
 		tokens:                list.New(),
