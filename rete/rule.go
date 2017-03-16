@@ -9,7 +9,7 @@ type Rule struct {
 	negative bool
 }
 type Has struct {
-	fields   [3]string
+	fields   [4]string
 	negative bool
 }
 type Filter struct {
@@ -35,15 +35,15 @@ func (has Has) test_wme(w *WME) bool {
 	}
 	return true
 }
-func CreateHas(id, attr, value string) Has {
+func CreateHas(class_name, id, attr, value string) Has {
 	return Has{
-		fields:   [3]string{id, attr, value},
+		fields:   [4]string{class_name, id, attr, value},
 		negative: false,
 	}
 }
-func CreateNeg(id, attr, value string) Has {
+func CreateNeg(class_name, id, attr, value string) Has {
 	return Has{
-		fields:   [3]string{id, attr, value},
+		fields:   [4]string{class_name, id, attr, value},
 		negative: true,
 	}
 }

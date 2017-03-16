@@ -12,7 +12,7 @@ func Test_make_token(t *testing.T) {
 		children: list.New(),
 	}
 	w := &WME{
-		fields:     [3]string{"B1", "on", "table"},
+		fields:     [4]string{"Object", "B1", "on", "table"},
 		alpha_mems: list.New(),
 		tokens:     list.New(),
 	}
