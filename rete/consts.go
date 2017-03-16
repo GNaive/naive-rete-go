@@ -1,7 +1,8 @@
 package rete
 
 const (
-	IDENTIFIER = iota
+	CLASS_NAME = iota
+	IDENTIFIER
 	ATTRIBUTE
 	VALUE
 	NO_TEST
@@ -16,4 +17,4 @@ const (
 	FILTER_NODE      = "filter_node"
 )
 
-var FIELDS = []int{IDENTIFIER, ATTRIBUTE, VALUE}
+var FIELDS = []int{CLASS_NAME, IDENTIFIER, ATTRIBUTE, VALUE}

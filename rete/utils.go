@@ -61,9 +61,11 @@ func parse_lhs(root *etree.Element) Rule {
 	for _, e := range root.ChildElements() {
 		switch e.Tag {
 		case "has":
-			identity, attribute, value := "", "", ""
+			class_name, identity, attribute, value := "", "", "", ""
 			for _, attr := range e.Attr {
-				if attr.Key == "identifier" {
+				if attr.Key == "classname" {
+					class_name = attr.Value
+				} else if attr.Key == "identifier" {
 					identity = attr.Value
 				} else if attr.Key == "attribute" {
 					attribute = attr.Value
@@ -71,7 +73,7 @@ func parse_lhs(root *etree.Element) Rule {
 					value = attr.Value
 				}
 			}
-			has := CreateHas(identity, attribute, value)
+			has := CreateHas(class_name, identity, attribute, value)
 			r.items = append(r.items, has)
 		case "filter":
 			f := Filter{tmpl: e.Text()}

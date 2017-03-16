@@ -16,8 +16,8 @@ func Test_constant_test_node_activation(t *testing.T) {
 		output_memory:    mem,
 		children:         list.New(),
 	}
-	w0 := CreateWME("B1", "color", "red")
-	w1 := CreateWME("B2", "color", "red")
+	w0 := CreateWME("Object", "B1", "color", "red")
+	w1 := CreateWME("Object", "B2", "color", "red")
 
 	node.activation(&w0)
 	node.activation(&w1)
