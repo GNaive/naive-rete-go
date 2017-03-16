@@ -35,24 +35,24 @@ func (has Has) test_wme(w *WME) bool {
 	}
 	return true
 }
-func CreateHas(class_name, id, attr, value string) Has {
+func NewHas(class_name, id, attr, value string) Has {
 	return Has{
 		fields:   [4]string{class_name, id, attr, value},
 		negative: false,
 	}
 }
-func CreateNeg(class_name, id, attr, value string) Has {
+func NewNeg(class_name, id, attr, value string) Has {
 	return Has{
 		fields:   [4]string{class_name, id, attr, value},
 		negative: true,
 	}
 }
-func CreateRule(items ...interface{}) Rule {
+func NewRule(items ...interface{}) Rule {
 	return Rule{
 		items: items,
 	}
 }
-func CreateNccRule(items ...interface{}) Rule {
+func NewNccRule(items ...interface{}) Rule {
 	return Rule{
 		items:    items,
 		negative: true,

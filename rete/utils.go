@@ -57,7 +57,7 @@ func FromXML(s string) (result []Production, err error) {
 }
 
 func parse_lhs(root *etree.Element) Rule {
-	r := CreateRule()
+	r := NewRule()
 	for _, e := range root.ChildElements() {
 		switch e.Tag {
 		case "has":
@@ -73,7 +73,7 @@ func parse_lhs(root *etree.Element) Rule {
 					value = attr.Value
 				}
 			}
-			has := CreateHas(class_name, identity, attribute, value)
+			has := NewHas(class_name, identity, attribute, value)
 			r.items = append(r.items, has)
 		case "filter":
 			f := Filter{tmpl: e.Text()}
