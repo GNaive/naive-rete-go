@@ -6,15 +6,15 @@ import (
 )
 
 func TestNetworkAddWME(t *testing.T) {
-	n := CreateNetwork()
-	c0 := CreateHas("Object", "$x", "on", "$y")
-	c1 := CreateHas("Object", "$y", "left_of", "$z")
+	n := NewNetwork()
+	c0 := NewHas("Object", "$x", "on", "$y")
+	c1 := NewHas("Object", "$y", "left_of", "$z")
 	am0 := n.build_or_share_alpha_memory(c0)
 	am1 := n.build_or_share_alpha_memory(c1)
 	wmes := []*WME{
-		CreateWME("Object", "B1", "on", "B2"),
-		CreateWME("Object", "B2", "left_of", "B3"),
-		CreateWME("Object", "B2", "on", "table"),
+		NewWME("Object", "B1", "on", "B2"),
+		NewWME("Object", "B2", "left_of", "B3"),
+		NewWME("Object", "B2", "on", "table"),
 	}
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
@@ -25,40 +25,29 @@ func TestNetworkAddWME(t *testing.T) {
 }
 
 func TestCase0(t *testing.T) {
-	n := CreateNetwork()
-	c0 := CreateHas("Object", "$x", "on", "$y")
-	c1 := CreateHas("Object", "$y", "left_of", "$z")
-	c2 := CreateHas("Object", "$z", "color", "red")
-	p := n.AddProduction(CreateRule(c0, c1, c2), nil)
+	n := NewNetwork()
+	c0 := NewHas("Object", "$x", "on", "$y")
+	c1 := NewHas("Object", "$y", "left_of", "$z")
+	c2 := NewHas("Object", "$z", "color", "red")
+	p := n.AddProduction(NewRule(c0, c1, c2), nil)
 	wmes := []*WME{
-		CreateWME("Object", "B1", "on", "B2"),
-		CreateWME("Object", "B1", "on", "B3"),
-		CreateWME("Object", "B1", "color", "red"),
-		CreateWME("Object", "B2", "on", "table"),
-		CreateWME("Object", "B2", "left_of", "B3"),
-		CreateWME("Object", "B2", "color", "blue"),
-		CreateWME("Object", "B3", "left_of", "B4"),
-		CreateWME("Object", "B3", "on", "table"),
-		CreateWME("Object", "B3", "color", "red"),
+		NewWME("Object", "B1", "on", "B2"),
+		NewWME("Object", "B1", "on", "B3"),
+		NewWME("Object", "B1", "color", "red"),
+		NewWME("Object", "B2", "on", "table"),
+		NewWME("Object", "B2", "left_of", "B3"),
+		NewWME("Object", "B2", "color", "blue"),
+		NewWME("Object", "B3", "left_of", "B4"),
+		NewWME("Object", "B3", "on", "table"),
+		NewWME("Object", "B3", "color", "red"),
 	}
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
 	}
 
-	// am0 := n.build_or_share_alpha_memory(c0)
-	// j0 := am0.successors.Front().Value.(*JoinNode)
-	// b1 := n.build_or_share_beta_memory(j0)
-
-	// am1 := n.build_or_share_alpha_memory(c1)
-	// j1 := am1.successors.Front().Value.(*JoinNode)
-	// b2 := n.build_or_share_beta_memory(j1)
-
-	// am2 := n.build_or_share_alpha_memory(c2)
-	// j2 := am2.successors.Front().Value.(*JoinNode)
-	// b3 := n.build_or_share_beta_memory(j2)
-
-	// fmt.Println(am0.items, am1.items, am2.items)
-	// fmt.Println(b1.GetItems(), b2.GetItems(), b3.GetItems())
+	if p.GetItems().Len() != 1 {
+		t.Error()
+	}
 	expect := "<Token [Object B1 on B2], [Object B2 left_of B3], [Object B3 color red]>"
 	for e := p.GetItems().Front(); e != nil; e = e.Next() {
 		tok := e.Value.(*Token)
@@ -73,16 +62,16 @@ func TestCase0(t *testing.T) {
 }
 
 func TestNegativeNode(t *testing.T) {
-	n := CreateNetwork()
-	c0 := CreateHas("Object","$x", "on", "$y")
-	c1 := CreateNeg("Object", "$y", "color", "blue")
-	p := n.AddProduction(CreateRule(c0, c1), nil)
+	n := NewNetwork()
+	c0 := NewHas("Object","$x", "on", "$y")
+	c1 := NewNeg("Object", "$y", "color", "blue")
+	p := n.AddProduction(NewRule(c0, c1), nil)
 
 	wmes := []*WME{
-		CreateWME("Object", "B1", "on", "B2"),
-		CreateWME("Object", "B1", "on", "B3"),
-		CreateWME("Object", "B2", "color", "blue"),
-		CreateWME("Object", "B3", "color", "red"),
+		NewWME("Object", "B1", "on", "B2"),
+		NewWME("Object", "B1", "on", "B3"),
+		NewWME("Object", "B2", "color", "blue"),
+		NewWME("Object", "B3", "color", "red"),
 	}
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
@@ -102,22 +91,22 @@ func TestNegativeNode(t *testing.T) {
 }
 
 func TestNccNode(t *testing.T) {
-	n := CreateNetwork()
-	c0 := CreateHas("Object","$x", "on", "$y")
-	c1 := CreateHas("Object","$y", "left_of", "$z")
-	c2 := CreateHas("Object","$z", "color", "red")
-	c3 := CreateHas("Object","$z", "on", "$w")
-	p := n.AddProduction(CreateRule(c0, c1, CreateNccRule(c2, c3)), nil)
+	n := NewNetwork()
+	c0 := NewHas("Object","$x", "on", "$y")
+	c1 := NewHas("Object","$y", "left_of", "$z")
+	c2 := NewHas("Object","$z", "color", "red")
+	c3 := NewHas("Object","$z", "on", "$w")
+	p := n.AddProduction(NewRule(c0, c1, NewNccRule(c2, c3)), nil)
 	wmes := []*WME{
-		CreateWME("Object","B1", "on", "B2"),
-		CreateWME("Object","B1", "on", "B3"),
-		CreateWME("Object", "B1", "color", "red"),
-		CreateWME("Object", "B2", "on", "table"),
-		CreateWME("Object", "B2", "left_of", "B3"),
-		CreateWME("Object", "B2", "color", "blue"),
-		CreateWME("Object", "B3", "left_of", "B4"),
-		CreateWME("Object", "B3", "on", "table"),
-		CreateWME("Object", "B3", "color", "red"),
+		NewWME("Object","B1", "on", "B2"),
+		NewWME("Object","B1", "on", "B3"),
+		NewWME("Object", "B1", "color", "red"),
+		NewWME("Object", "B2", "on", "table"),
+		NewWME("Object", "B2", "left_of", "B3"),
+		NewWME("Object", "B2", "color", "blue"),
+		NewWME("Object", "B3", "left_of", "B4"),
+		NewWME("Object", "B3", "on", "table"),
+		NewWME("Object", "B3", "color", "red"),
 	}
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
@@ -157,7 +146,7 @@ func TestFromXML(t *testing.T) {
 	    </production>
 	</data>
 	`
-	n := CreateNetwork()
+	n := NewNetwork()
 	pnodes, err := n.AddProductionFromXML(data)
 	if err != nil {
 		t.Error(err)
@@ -167,9 +156,9 @@ func TestFromXML(t *testing.T) {
 	p1 := pnodes[1]
 
 	wmes := []*WME{
-		CreateWME("user", "100001", "id", "100001"),
-		CreateWME("spu", "1", "quantity", "2"),
-		CreateWME("spu", "2", "quantity", "6"),
+		NewWME("user", "100001", "id", "100001"),
+		NewWME("spu", "1", "quantity", "2"),
+		NewWME("spu", "2", "quantity", "6"),
 	}
 	for idx := range wmes {
 		n.AddWME(wmes[idx])

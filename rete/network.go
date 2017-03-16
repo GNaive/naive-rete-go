@@ -18,7 +18,7 @@ type Network struct {
 	beta_root  IReteNode
 }
 
-func CreateNetwork() Network {
+func NewNetwork() Network {
 	work_memory := &AlphaMemory{
 		items:      list.New(),
 		successors: list.New(),
