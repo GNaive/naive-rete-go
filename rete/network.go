@@ -200,7 +200,7 @@ func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemor
 func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	current_node := n.alpha_root
 	for field, sym := range c.fields {
-		if sym[0] != '$' {
+		if !is_var(sym) {
 			current_node = n.build_or_share_constant_test_node(current_node, field, sym)
 		}
 	}
