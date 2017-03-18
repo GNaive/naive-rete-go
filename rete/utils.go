@@ -4,6 +4,8 @@ import (
 	"container/list"
 	"github.com/beevik/etree"
 	"errors"
+	"encoding/json"
+	"fmt"
 )
 
 func contain(l *list.List, value interface{}) *list.Element {
@@ -38,13 +40,15 @@ func FromXML(s string) (result []Production, err error) {
 	}
 
 	for _, ep := range root.ChildElements() {
-		if ep.Tag != "production" {continue}
+		if ep.Tag != "production" {
+			continue
+		}
 		p := Production{
 			rhs: make(map[string]interface{}),
 		}
 		for idx, hand := range ep.ChildElements() {
 			if idx == 0 {
-				p.lhs = parse_lhs(hand)
+				p.lhs = XMLParseLHS(hand)
 			} else if idx == 1 {
 				for _, attr := range hand.Attr {
 					p.rhs[attr.Key] = attr.Value
@@ -56,11 +60,11 @@ func FromXML(s string) (result []Production, err error) {
 	return result, nil
 }
 
-func parse_lhs(root *etree.Element) Rule {
+func XMLParseLHS(root *etree.Element) Rule {
 	r := NewRule()
 	for _, e := range root.ChildElements() {
 		switch e.Tag {
-		case "has":
+		case "has", "neg":
 			class_name, identity, attribute, value := "", "", "", ""
 			for _, attr := range e.Attr {
 				if attr.Key == "classname" {
@@ -73,12 +77,110 @@ func parse_lhs(root *etree.Element) Rule {
 					value = attr.Value
 				}
 			}
-			has := NewHas(class_name, identity, attribute, value)
+			var has Has
+			if e.Tag == "has" {
+				has = NewHas(class_name, identity, attribute, value)
+			} else {
+				has = NewNeg(class_name, identity, attribute, value)
+			}
 			r.items = append(r.items, has)
 		case "filter":
 			f := Filter{tmpl: e.Text()}
 			r.items = append(r.items, f)
+		case "ncc":
+			_rule := XMLParseLHS(e)
+			_rule.negative = true
+			r.items = append(r.items, _rule)
 		}
 	}
 	return r
+}
+
+func FromJSON (s string) (r []Production, err error) {
+	root := make(map[string]interface{})
+	err = json.Unmarshal([]byte(s), &root)
+	if err != nil {
+		return r, err
+	}
+	if root["productions"] == nil {
+		return r, errors.New("no productions")
+	}
+	ps, ok := root["productions"].([]interface{})
+	if !ok {
+		return r, errors.New("productions not List")
+	}
+	for _, p := range ps {
+		production := Production{}
+		p, ok := p.(map[string]interface{})
+		if !ok {
+			message := fmt.Sprintf("production not Object: %s", p)
+			return r, errors.New(message)
+		}
+		production.rhs, ok = p["rhs"].(map[string]interface{})
+		if !ok {
+			message := fmt.Sprintf("rhs not Object: %s", p["rhs"])
+			return r, errors.New(message)
+		}
+		lhs, ok := p["lhs"].([]interface{})
+		if !ok {
+			message := fmt.Sprintf("lhs not List: %s", p["lhs"])
+			return r, errors.New(message)
+		}
+		production.lhs, err = JSONParseLHS(lhs)
+		if err != nil {
+			return r, err
+		}
+		r = append(r, production)
+	}
+	return r, err
+}
+
+func JSONParseLHS (lhs []interface{}) (r Rule, err error) {
+	for _, e := range lhs {
+		cond, ok := e.(map[string]interface{})
+		if !ok {
+			message := fmt.Sprintf("lhs element not Object: %s", e)
+			return r, errors.New(message)
+		}
+		switch cond["tag"] {
+		case "has", "neg":
+			class, ok_0 := cond["classname"].(string)
+			id, ok_1 := cond["identifier"].(string)
+			attr, ok_2 := cond["attribute"].(string)
+			value, ok_3 := cond["value"].(string)
+			if !ok_0 || !ok_1 || !ok_2 || !ok_3 {
+				message := fmt.Sprintf("condition missing fields: %s", cond)
+				return r, errors.New(message)
+			}
+			if cond["tag"] == "has" {
+				r.items = append(r.items, NewHas(class, id, attr, value))
+			} else {
+				r.items = append(r.items, NewNeg(class, id, attr, value))
+			}
+		case "filter":
+			tmpl, ok := cond["tmpl"].(string)
+			if !ok {
+				message := fmt.Sprintf("filter tmpl not string: %s", cond)
+				return r, errors.New(message)
+			}
+			r.items = append(r.items, Filter{tmpl:tmpl})
+		case "ncc":
+			ncc, ok := cond["items"].([]interface{})
+			if !ok {
+				message := fmt.Sprintf("lhs not List: %s", cond["items"])
+				return r, errors.New(message)
+			}
+			_rule, err := JSONParseLHS(ncc)
+			_rule.negative = true
+			if err != nil {
+				return r, err
+			}
+			r.items = append(r.items, _rule)
+		default:
+			message := fmt.Sprintf("tag error: %s", cond["tag"])
+			return r, errors.New(message)
+
+		}
+	}
+	return r, err
 }

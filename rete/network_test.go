@@ -176,3 +176,45 @@ func TestFromXML(t *testing.T) {
 		t.Error()
 	}
 }
+
+func TestFromJSON(t *testing.T) {
+	data := `
+	{
+	  "productions": [
+	    {
+	      "lhs": [
+	        {
+	          "attribute": "quantity",
+	          "classname": "ProductSKU",
+	          "identifier": "1",
+	          "tag": "has",
+	          "value": "$quantity"
+	        }
+	      ],
+	      "rhs": {
+	        "kind": "quota:user:sku",
+	        "quota": 1
+	      }
+	    },
+	    {
+	      "lhs": [
+	        {
+	          "attribute": "quantity",
+	          "classname": "ProductSKU",
+	          "identifier": "$sku_id",
+	          "tag": "has",
+	          "value": "$quantity"
+	        }
+	      ],
+	      "rhs": {
+	        "kind": "quota:user:sku",
+	        "quota": 3
+	      }
+	    }
+	  ]
+	}`
+	_, err := FromJSON(data)
+	if err != nil {
+		t.Error(err)
+	}
+}
