@@ -28,7 +28,7 @@ func (node NegativeNode) GetItems() *list.List {
 func (node *NegativeNode) GetChildren() *list.List {
 	return node.children
 }
-func (node *NegativeNode) LeftActivation(t *Token, w *WME, b Binding) {
+func (node *NegativeNode) LeftActivation(t *Token, w *WME, b Env) {
 	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 

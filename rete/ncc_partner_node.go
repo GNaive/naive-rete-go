@@ -22,7 +22,7 @@ func (node NccPartnerNode) GetItems() *list.List {
 func (node NccPartnerNode) GetChildren() *list.List {
 	return node.children
 }
-func (node NccPartnerNode) LeftActivation(t *Token, w *WME, b Binding) {
+func (node NccPartnerNode) LeftActivation(t *Token, w *WME, b Env) {
 	ncc_node := node.ncc_node
 	new_result := make_token(node, t, w, b)
 	owners_t := t

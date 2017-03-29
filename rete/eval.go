@@ -5,77 +5,140 @@ import (
 	"go/parser"
 	"go/token"
 	"strconv"
+	"reflect"
+	"errors"
+	"fmt"
+	"runtime/debug"
 )
 
-func EvalFromString(s string) interface{} {
+func EvalFromString(s string, env Env) (result []reflect.Value, err error) {
 	exp, err := parser.ParseExpr(s)
 	if err != nil {
-		return false
+		return
 	}
-	return Eval(exp)
+	return Eval(exp, env)
 }
-func Eval(exp ast.Expr) interface{} {
+
+func Eval(exp ast.Expr, env Env) (result []reflect.Value, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = errors.New(fmt.Sprintf("%s %s", e, debug.Stack()))
+		}
+	}()
 	switch exp := exp.(type) {
 	case *ast.BinaryExpr:
-		return EvalBinaryExpr(exp)
+		return EvalBinaryExpr(exp, env)
 	case *ast.BasicLit:
+		var r interface{}
 		switch exp.Kind {
 		case token.INT, token.FLOAT:
-			i, _ := strconv.ParseFloat(exp.Value, 32)
-			return i
+			r, err = strconv.ParseFloat(exp.Value, 64)
+		case token.STRING:
+			r, err = strconv.Unquote(exp.Value)
 		}
+		if err != nil {
+			return
+		}
+		result = append(result, reflect.ValueOf(r))
+		return result, nil
 	case *ast.UnaryExpr:
 		switch exp.Op {
 		case token.ADD:
-			return Eval(exp.X).(float64)
+			return Eval(exp.X, env)
 		case token.SUB:
-			return -Eval(exp.X).(float64)
+			result, err = Eval(exp.X, env)
+			if err != nil {
+				return
+			}
+			val := -result[0].Float()
+			result = []reflect.Value{reflect.ValueOf(val)}
+			return
 		}
 	case *ast.ParenExpr:
-		return Eval(exp.X)
+		return Eval(exp.X, env)
 	case *ast.Ident:
-		return EvalIdent(exp.Name)
+		return EvalIdent(exp, env)
+	case *ast.CallExpr:
+		return EvalCall(exp, env)
 	}
 
-	return nil
+	return
 }
 
-func EvalIdent(exp string) interface{} {
-	switch exp {
-	case "true":
-		return true
-	case "false":
-		return false
+func EvalCall(exp *ast.CallExpr, env Env) (result []reflect.Value, err error) {
+	f_val, err := Eval(exp.Fun, env)
+	if err != nil {
+		return
 	}
-	return nil
+	var args_val []reflect.Value
+	for _, arg := range exp.Args {
+		arg_val, err := Eval(arg, env)
+		if err != nil {
+			return result, err
+		}
+		args_val = append(args_val, arg_val[0])
+	}
+	result = f_val[0].Call(args_val)
+	return
 }
 
-func EvalBinaryExpr(exp *ast.BinaryExpr) interface{} {
-	left := Eval(exp.X)
-	right := Eval(exp.Y)
+func EvalIdent(exp *ast.Ident, env Env) (result []reflect.Value, err error) {
+	v := env[exp.Name]
+	if v == nil {
+		err = errors.New(fmt.Sprintf("Ident `%s` undefined", exp))
+	} else {
+		result = append(result, reflect.ValueOf(v))
+	}
+	return
+}
+
+func EvalBinaryExpr(exp *ast.BinaryExpr, env map[string]interface{}) (result []reflect.Value, err error) {
+	left_result, err := Eval(exp.X, env)
+	if err != nil {
+		return
+	}
+	right_result, err := Eval(exp.Y, env)
+	if err != nil {
+		return
+	}
+	var r interface{}
+	left := value2float(left_result[0])
+	right := value2float(right_result[0])
+
 	switch exp.Op {
 	case token.GTR:
-		return left.(float64) > right.(float64)
+		r = left > right
 	case token.LSS:
-		return left.(float64) < right.(float64)
+		r = left < right
 	case token.GEQ:
-		return left.(float64) >= right.(float64)
+		r = left >= right
 	case token.LEQ:
-		return left.(float64) <= right.(float64)
+		r = left <= right
 	case token.EQL:
-		return left.(float64) == right.(float64)
+		r = left == right
 	case token.ADD:
-		return left.(float64) + right.(float64)
+		r = left + right
 	case token.SUB:
-		return left.(float64) - right.(float64)
+		r = left - right
 	case token.MUL:
-		return left.(float64) * right.(float64)
+		r = left * right
 	case token.QUO:
-		return left.(float64) / right.(float64)
-	case token.REM:
-		return int(left.(float64)) % int(right.(float64))
-	case token.LAND:
-		return left.(bool) && right.(bool)
+		r = left / right
+	default:
+		err = errors.New(fmt.Sprintf("OP `%s` undefined", exp.Op))
+		return
 	}
-	return nil
+	result = append(result, reflect.ValueOf(r))
+	return result, nil
+}
+
+func value2float(v reflect.Value) float64 {
+	switch v.Kind() {
+	case reflect.Float64:
+		return v.Float()
+	case reflect.String:
+		r, _ := strconv.ParseFloat(v.String(), 64)
+		return r
+	}
+	return v.Float()
 }

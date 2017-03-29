@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type Binding map[string]string
+type Env map[string]interface{}
 
 type Token struct {
 	parent       *Token
@@ -16,7 +16,7 @@ type Token struct {
 	join_results *list.List // used in negative nodes
 	ncc_results  *list.List
 	owner        *Token
-	binding      Binding
+	binding      Env
 }
 
 func (t *Token) get_wmes() []*WME {
@@ -32,7 +32,8 @@ func (t *Token) get_wmes() []*WME {
 	}
 	return ret
 }
-func make_token(node IReteNode, parent *Token, w *WME, b Binding) *Token {
+
+func make_token(node IReteNode, parent *Token, w *WME, b Env) *Token {
 	tok := &Token{
 		parent:   parent,
 		wme:      w,
@@ -48,6 +49,7 @@ func make_token(node IReteNode, parent *Token, w *WME, b Binding) *Token {
 	}
 	return tok
 }
+
 func (tok *Token) delete_token_and_descendents() {
 	for tok.children != nil && tok.children.Len() > 0 {
 		e := tok.children.Front()
@@ -63,6 +65,7 @@ func (tok *Token) delete_token_and_descendents() {
 		remove_by_value(tok.parent.children, tok)
 	}
 }
+
 func (tok Token) String() string {
 	ret := []string{}
 	wmes := tok.get_wmes()
@@ -72,13 +75,14 @@ func (tok Token) String() string {
 	}
 	return fmt.Sprintf("<Token %s>", strings.Join(ret, ", "))
 }
-func (tok *Token) GetBinding(k string) string {
+
+func (tok *Token) GetBinding(k string) interface{} {
+	var v interface{}
 	t := tok
-	v := ""
 	if t.binding != nil {
 		v = t.binding[k]
 	}
-	for len(v) == 0 && t.parent != nil {
+	for v == nil && t.parent != nil {
 		t = t.parent
 		if t.binding != nil {
 			v = t.binding[k]
@@ -86,14 +90,15 @@ func (tok *Token) GetBinding(k string) string {
 	}
 	return v
 }
-func (tok *Token) AllBinding() Binding {
+
+func (tok *Token) AllBinding() Env {
 	path := []*Token{}
 	t := tok
 	for t != nil {
 		path = append(path, t)
 		t = t.parent
 	}
-	result := make(Binding)
+	result := make(Env)
 	for _, t := range path {
 		for k, v := range t.binding {
 			result[k] = v

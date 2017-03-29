@@ -21,7 +21,7 @@ func (node NccNode) GetItems() *list.List {
 func (node NccNode) GetChildren() *list.List {
 	return node.children
 }
-func (node NccNode) LeftActivation(t *Token, w *WME, b Binding) {
+func (node NccNode) LeftActivation(t *Token, w *WME, b Env) {
 	new_token := make_token(node, t, w, b)
 	node.items.PushBack(new_token)
 
