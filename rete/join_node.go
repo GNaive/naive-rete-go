@@ -50,7 +50,7 @@ func (node *JoinNode) RightActivation(w *WME) {
 		}
 	}
 }
-func (node *JoinNode) LeftActivation(t *Token, w *WME, b Binding) {
+func (node *JoinNode) LeftActivation(t *Token, w *WME, b Env) {
 	for e := node.amem.items.Front(); e != nil; e = e.Next() {
 		w := e.Value.(*WME)
 		if node.perform_join_tests(t, w) {
@@ -74,11 +74,11 @@ func (node *JoinNode) perform_join_tests(t *Token, w *WME) bool {
 	}
 	return true
 }
-func (node *JoinNode) make_binding(w *WME) Binding {
-	b := make(Binding)
+func (node *JoinNode) make_binding(w *WME) Env {
+	b := make(Env)
 	for idx, v := range node.has.fields {
 		if is_var(v) {
-			b[v] = w.fields[idx]
+			b[var_key(v)] = w.fields[idx]
 		}
 	}
 	return b

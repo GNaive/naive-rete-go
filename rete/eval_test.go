@@ -1,15 +1,24 @@
 package rete
 
 import (
-	"go/parser"
 	"testing"
+	"fmt"
 )
 
-func TestEval(t *testing.T) {
-	exp, _ := parser.ParseExpr("1 > 2")
-	// ast.Print(token.NewFileSet(), exp)
-	// fmt.Println(Eval(exp))
-	if Eval(exp).(bool) {
-		t.Error("error")
+func F(a string, b string) map[string]interface{} {
+	result := make(map[string]interface{})
+	result["a"] = a
+	result["b"] = b
+	return result
+}
+
+func TestEvalFromString(t *testing.T) {
+	env := make(map[string]interface {})
+	env["F"] = F
+	result, err := EvalFromString(`F("hello", "world")`, env)
+	if err != nil {
+		t.Error(err)
+	} else {
+		fmt.Println("eval result:", result[0])
 	}
 }

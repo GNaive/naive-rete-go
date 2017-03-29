@@ -44,15 +44,16 @@ func FromXML(s string) (result []Production, err error) {
 			continue
 		}
 		p := Production{
-			rhs: make(map[string]interface{}),
+			rhs: NewRHS(),
 		}
 		for idx, hand := range ep.ChildElements() {
 			if idx == 0 {
 				p.lhs = XMLParseLHS(hand)
 			} else if idx == 1 {
 				for _, attr := range hand.Attr {
-					p.rhs[attr.Key] = attr.Value
+					p.rhs.Extra[attr.Key] = attr.Value
 				}
+				p.rhs.tmpl = hand.Text()
 			}
 		}
 		result = append(result, p)
@@ -60,8 +61,8 @@ func FromXML(s string) (result []Production, err error) {
 	return result, nil
 }
 
-func XMLParseLHS(root *etree.Element) Rule {
-	r := NewRule()
+func XMLParseLHS(root *etree.Element) LHS {
+	r := NewLHS()
 	for _, e := range root.ChildElements() {
 		switch e.Tag {
 		case "has", "neg":
@@ -116,7 +117,11 @@ func FromJSON (s string) (r []Production, err error) {
 			message := fmt.Sprintf("production not Object: %s", p)
 			return r, errors.New(message)
 		}
-		production.rhs, ok = p["rhs"].(map[string]interface{})
+		rhs_obj, ok := p["rhs"].(map[string]interface{})
+		production.rhs.Extra = rhs_obj
+		if rhs_obj["tmpl"] != nil {
+			production.rhs.tmpl = rhs_obj["tmpl"].(string)
+		}
 		if !ok {
 			message := fmt.Sprintf("rhs not Object: %s", p["rhs"])
 			return r, errors.New(message)
@@ -135,7 +140,7 @@ func FromJSON (s string) (r []Production, err error) {
 	return r, err
 }
 
-func JSONParseLHS (lhs []interface{}) (r Rule, err error) {
+func JSONParseLHS (lhs []interface{}) (r LHS, err error) {
 	for _, e := range lhs {
 		cond, ok := e.(map[string]interface{})
 		if !ok {

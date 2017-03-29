@@ -9,7 +9,7 @@ type IReteNode interface {
 	GetItems() *list.List
 	GetParent() IReteNode
 	GetChildren() *list.List
-	LeftActivation(t *Token, w *WME, b Binding)
+	LeftActivation(t *Token, w *WME, b Env)
 	RightActivation(w *WME)
 }
 
@@ -40,12 +40,13 @@ func NewNetwork() Network {
 	}
 }
 
-func (n Network) AddProduction(lhs Rule, rhs map[string]interface{}) *BetaMemory {
-	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, Rule{})
+func (n Network) AddProduction(lhs LHS, rhs RHS) *BetaMemory {
+	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, LHS{})
 	pnode := n.build_or_share_beta_memory(current_node)
-	pnode.(*BetaMemory).ExecuteParams = rhs
+	pnode.(*BetaMemory).RHS = &rhs
 	return pnode.(*BetaMemory)
 }
+
 func (n Network) AddProductionFromXML(s string) (result []*BetaMemory, err error) {
 	ps, err := FromXML(s)
 	if err != nil {
@@ -56,11 +57,13 @@ func (n Network) AddProductionFromXML(s string) (result []*BetaMemory, err error
 	}
 	return result, nil
 }
+
 func (n Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)
 }
+
 func (n Network) build_or_share_network_for_conditions(
-	parent IReteNode, rule Rule, earlier_conds Rule) IReteNode {
+	parent IReteNode, rule LHS, earlier_conds LHS) IReteNode {
 	current_node := parent
 	conds_higher_up := earlier_conds
 	for _, cond := range rule.items {
@@ -80,8 +83,8 @@ func (n Network) build_or_share_network_for_conditions(
 		case Filter:
 			cond := cond.(Filter)
 			current_node = n.build_or_share_filter_node(current_node, cond)
-		case Rule:
-			cond := cond.(Rule)
+		case LHS:
+			cond := cond.(LHS)
 			if cond.negative {
 				current_node = n.build_or_share_ncc_nodes(current_node, cond, conds_higher_up)
 			}
@@ -90,6 +93,7 @@ func (n Network) build_or_share_network_for_conditions(
 	}
 	return current_node
 }
+
 func (n Network) build_or_share_filter_node(parent IReteNode, f Filter) IReteNode {
 	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
 		child := e.Value.(IReteNode)
@@ -108,7 +112,8 @@ func (n Network) build_or_share_filter_node(parent IReteNode, f Filter) IReteNod
 	parent.GetChildren().PushBack(filter_node)
 	return filter_node
 }
-func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc Rule, earlier Rule) IReteNode {
+
+func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc LHS, earlier LHS) IReteNode {
 	bottom_of_subnetwork := n.build_or_share_network_for_conditions(parent, ncc, earlier)
 	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
 		child := e.Value.(IReteNode)
@@ -138,6 +143,7 @@ func (n Network) build_or_share_ncc_nodes(parent IReteNode, ncc Rule, earlier Ru
 	n.update_new_node_with_matches_above(ncc_partner_node)
 	return ncc_node
 }
+
 func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
 		if e.Value.(IReteNode).GetNodeType() == BETA_MEMORY_NODE {
@@ -153,6 +159,7 @@ func (n Network) build_or_share_beta_memory(parent IReteNode) IReteNode {
 	n.update_new_node_with_matches_above(node)
 	return node
 }
+
 func (n Network) build_or_share_join_node(
 	parent IReteNode, amem *AlphaMemory, tests *list.List, h *Has) IReteNode {
 	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
@@ -175,6 +182,7 @@ func (n Network) build_or_share_join_node(
 	amem.successors.PushBack(node)
 	return node
 }
+
 func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemory, tests *list.List) IReteNode {
 	for e := parent.GetChildren().Front(); e != nil; e = e.Next() {
 		if e.Value.(IReteNode).GetNodeType() != NEGATIVE_NODE {
@@ -197,6 +205,7 @@ func (n Network) build_or_share_negative_node(parent IReteNode, amem *AlphaMemor
 	n.update_new_node_with_matches_above(node)
 	return node
 }
+
 func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	current_node := n.alpha_root
 	for field, sym := range c.fields {
@@ -220,6 +229,7 @@ func (n Network) build_or_share_alpha_memory(c Has) *AlphaMemory {
 	}
 	return am
 }
+
 func (n Network) build_or_share_constant_test_node(
 	parent *ConstantTestNode, field int, symbol string) *ConstantTestNode {
 	for e := parent.children.Front(); e != nil; e = e.Next() {
@@ -237,7 +247,8 @@ func (n Network) build_or_share_constant_test_node(
 	parent.children.PushBack(node)
 	return node
 }
-func (n Network) get_join_tests_from_condition(c Has, earlier_conds Rule) *list.List {
+
+func (n Network) get_join_tests_from_condition(c Has, earlier_conds LHS) *list.List {
 	ret := list.New()
 	for v_field1, v := range c.fields {
 		if !is_var(v) {
@@ -258,6 +269,7 @@ func (n Network) get_join_tests_from_condition(c Has, earlier_conds Rule) *list.
 	}
 	return ret
 }
+
 func (n Network) update_new_node_with_matches_above(node IReteNode) {
 	parent := node.GetParent()
 	if parent == nil {
