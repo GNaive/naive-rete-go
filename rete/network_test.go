@@ -27,15 +27,20 @@ func TestNetworkAddWME(t *testing.T) {
 func TestCase0(t *testing.T) {
 	n := NewNetwork()
 	env := make(Env)
-	env["F"] = func (x string, y string, z string) string {
-		return fmt.Sprintf("%s, %s, %s", x, y, z)
+	env["F"] = func (network *Network, token *Token) {
+		x := token.GetBinding("x")
+		y := token.GetBinding("y")
+		z := token.GetBinding("z")
+		ret := fmt.Sprintf("%s, %s, %s", x, y, z)
+		network.AddObject("result", ret)
+		network.Halt()
 	}
 
 	c0 := NewHas("Object", "$x", "on", "$y")
 	c1 := NewHas("Object", "$y", "left_of", "$z")
 	c2 := NewHas("Object", "$z", "color", "red")
-	p := n.AddProduction(NewLHS(c0, c1, c2), RHS{
-		tmpl: `F(x, y, z)`,
+	n.AddProduction(NewLHS(c0, c1, c2), RHS{
+		tmpl: `F`,
 		Extra: make(map[string]interface{}),
 	})
 	wmes := []*WME{
@@ -52,14 +57,14 @@ func TestCase0(t *testing.T) {
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
 	}
-
-	result, err := p.Eval(p.PopToken(), env)
+	err := n.ExecuteRules(env)
 	if err != nil {
 		t.Error(err)
 	}
-	if result[0].String() != "B1, B2, B3" {
-		t.Error(result[0])
+	if n.GetObject("result") != "B1, B2, B3" {
+		t.Error(n.GetObject("result"))
 	}
+
 }
 
 func TestNegativeNode(t *testing.T) {
@@ -135,7 +140,7 @@ func TestFromXML(t *testing.T) {
 		    <has classname="SKU" identifier="$sku_id" attribute="quantity" value="$quantity"/>
 		    <filter><![CDATA[quantity > 1]]></filter>
 		</lhs>
-		<rhs>Sprintf("uid:%s, sku_id:%s", uid, sku_id)</rhs>
+		<rhs>Handler</rhs>
 	   </production>
 	   <production>
 		<lhs>
@@ -143,18 +148,19 @@ func TestFromXML(t *testing.T) {
 		    <has classname="SKU" identifier="$sku_id" attribute="quantity" value="$quantity"/>
 		    <filter><![CDATA[quantity > 10]]></filter>
 		</lhs>
-		<rhs>Sprintf("%s, %s", uid, sku_id)</rhs>
+		<rhs>Handler</rhs>
 	   </production>
 	</data>`
 	n := NewNetwork()
 	env := make(Env)
-	env["Sprintf"] = fmt.Sprintf
-	pnodes, err := n.AddProductionFromXML(data)
+	env["Handler"] = func (network *Network, token *Token) {
+		fmt.Println(token)
+	}
+	_, err := n.AddProductionFromXML(data)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	p0 := pnodes[0]
 
 	wmes := []*WME{
 		NewWME("Request", "nil", "user_id", "100001"),
@@ -164,15 +170,7 @@ func TestFromXML(t *testing.T) {
 	for idx := range wmes {
 		n.AddWME(wmes[idx])
 	}
-	tok := p0.PopToken()
-	result, err := p0.Eval(tok, env)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if result[0].String() != "uid:100001, sku_id:1" {
-		t.Error(result[0])
-	}
+	n.ExecuteRules(env)
 }
 
 func TestFromJSON(t *testing.T) {

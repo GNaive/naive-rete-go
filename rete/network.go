@@ -16,9 +16,12 @@ type IReteNode interface {
 type Network struct {
 	alpha_root *ConstantTestNode
 	beta_root  IReteNode
+	objects    Env // for rhs result
+	PNodes     []*BetaMemory
+	halt       bool
 }
 
-func NewNetwork() Network {
+func NewNetwork() *Network {
 	work_memory := &AlphaMemory{
 		items:      list.New(),
 		successors: list.New(),
@@ -34,20 +37,63 @@ func NewNetwork() Network {
 		parent:   nil,
 		children: list.New(),
 	}
-	return Network{
+	return &Network{
 		alpha_root: alpha_root,
 		beta_root:  beta_root,
+		objects:    make(Env),
+		PNodes:     []*BetaMemory{},
+		halt:       false,
 	}
 }
 
-func (n Network) AddProduction(lhs LHS, rhs RHS) *BetaMemory {
-	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, LHS{})
-	pnode := n.build_or_share_beta_memory(current_node)
-	pnode.(*BetaMemory).RHS = &rhs
-	return pnode.(*BetaMemory)
+func (n *Network) AddObject(key string, obj interface{}) {
+	n.objects[key] = obj
 }
 
-func (n Network) AddProductionFromXML(s string) (result []*BetaMemory, err error) {
+func (n Network) GetObjects() Env {
+	return n.objects
+}
+
+func (n Network) GetObject(key string) interface{} {
+	return n.objects[key]
+}
+
+func (n *Network) Halt() {
+	n.halt = true
+}
+
+func (n *Network) ExecuteRules(env Env) (err error) {
+	for _, pnode := range n.PNodes {
+		for elem := pnode.GetItems().Front(); elem != nil; elem = elem.Next() {
+			token := elem.Value.(*Token)
+			if pnode.RHS == nil || len(pnode.RHS.tmpl) == 0 {
+				continue
+			}
+			handler := env[pnode.RHS.tmpl]
+			if handler == nil {
+				continue
+			}
+			handler.(func(network *Network, token *Token))(
+				n, token,
+			)
+			if n.halt {
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+func (n *Network) AddProduction(lhs LHS, rhs RHS) *BetaMemory {
+	current_node := n.build_or_share_network_for_conditions(n.beta_root, lhs, LHS{})
+	node := n.build_or_share_beta_memory(current_node)
+	memory := node.(*BetaMemory)
+	memory.RHS = &rhs
+	n.PNodes = append(n.PNodes, memory)
+	return memory
+}
+
+func (n *Network) AddProductionFromXML(s string) (result []*BetaMemory, err error) {
 	ps, err := FromXML(s)
 	if err != nil {
 		return result, err
@@ -58,7 +104,7 @@ func (n Network) AddProductionFromXML(s string) (result []*BetaMemory, err error
 	return result, nil
 }
 
-func (n Network) AddWME(w *WME) {
+func (n *Network) AddWME(w *WME) {
 	n.alpha_root.activation(w)
 }
 

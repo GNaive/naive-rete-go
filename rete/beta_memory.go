@@ -2,8 +2,6 @@ package rete
 
 import (
 	"container/list"
-	"reflect"
-	"errors"
 )
 
 type BetaMemory struct {
@@ -42,22 +40,6 @@ func (node BetaMemory) RightActivation(w *WME) {
 
 func (node BetaMemory) GetExecuteParam(s string) interface{} {
 	return node.RHS.Extra[s]
-}
-
-func (node BetaMemory) Eval(t *Token, env Env) (result []reflect.Value, err error) {
-	if node.RHS == nil || len(node.RHS.tmpl) == 0 {
-		err = errors.New("no tmpl to eval")
-		return
-	}
-	if t == nil {
-		err = errors.New("token is nil")
-		return
-	}
-	all_binding := t.AllBinding()
-	for k, v := range all_binding {
-		env[k] = v
-	}
-	return EvalFromString(node.RHS.tmpl, env)
 }
 
 func (node BetaMemory) PopToken() *Token {
