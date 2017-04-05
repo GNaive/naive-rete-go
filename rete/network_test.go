@@ -66,6 +66,7 @@ func TestCase0(t *testing.T) {
 	}
 	if n.GetObject("result") != "B1, B2, B3, 1" {
 		t.Error(n.GetObject("result"))
+		fmt.Print(n.LogBuf)
 	}
 
 }
