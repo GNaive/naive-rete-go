@@ -2,6 +2,9 @@ package rete
 
 import (
 	"container/list"
+	"log"
+	"bytes"
+	"runtime/debug"
 )
 
 type IReteNode interface {
@@ -19,6 +22,7 @@ type Network struct {
 	objects    Env // for rhs result
 	PNodes     []*BetaMemory
 	halt       bool
+	LogBuf     *bytes.Buffer
 }
 
 func NewNetwork() *Network {
@@ -43,6 +47,7 @@ func NewNetwork() *Network {
 		objects:    make(Env),
 		PNodes:     []*BetaMemory{},
 		halt:       false,
+		LogBuf:     &bytes.Buffer{},
 	}
 }
 
@@ -73,9 +78,18 @@ func (n *Network) ExecuteRules(env Env) (err error) {
 			if handler == nil {
 				continue
 			}
-			handler.(func(network *Network, token *Token))(
-				n, token,
-			)
+			func() {
+				defer func() {
+					l := log.New(n.LogBuf, "RHS `"+pnode.RHS.tmpl+"` ", log.Lshortfile)
+					if e := recover(); e != nil {
+						l.Printf("%s %s", e, debug.Stack())
+					}
+
+				}()
+				handler.(func(network *Network, token *Token))(
+					n, token,
+				)
+			}()
 			if n.halt {
 				return nil
 			}
