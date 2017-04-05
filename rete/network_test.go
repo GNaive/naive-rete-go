@@ -31,7 +31,8 @@ func TestCase0(t *testing.T) {
 		x := token.GetBinding("x")
 		y := token.GetBinding("y")
 		z := token.GetBinding("z")
-		ret := fmt.Sprintf("%s, %s, %s", x, y, z)
+		dummy := token.GetRHSParam("dummy")
+		ret := fmt.Sprintf("%s, %s, %s, %v", x, y, z, dummy)
 		network.AddObject("result", ret)
 		network.Halt()
 	}
@@ -39,9 +40,11 @@ func TestCase0(t *testing.T) {
 	c0 := NewHas("Object", "$x", "on", "$y")
 	c1 := NewHas("Object", "$y", "left_of", "$z")
 	c2 := NewHas("Object", "$z", "color", "red")
+	m := make(map[string]interface{})
+	m["dummy"] = 1
 	n.AddProduction(NewLHS(c0, c1, c2), RHS{
 		tmpl: `F`,
-		Extra: make(map[string]interface{}),
+		Extra: m,
 	})
 	wmes := []*WME{
 		NewWME("Object", "B1", "on", "B2"),
@@ -61,7 +64,7 @@ func TestCase0(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if n.GetObject("result") != "B1, B2, B3" {
+	if n.GetObject("result") != "B1, B2, B3, 1" {
 		t.Error(n.GetObject("result"))
 	}
 

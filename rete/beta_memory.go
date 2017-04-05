@@ -39,6 +39,9 @@ func (node BetaMemory) RightActivation(w *WME) {
 }
 
 func (node BetaMemory) GetExecuteParam(s string) interface{} {
+	if node.RHS == nil {
+		return nil
+	}
 	return node.RHS.Extra[s]
 }
 

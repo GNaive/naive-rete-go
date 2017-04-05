@@ -91,6 +91,14 @@ func (tok *Token) GetBinding(k string) interface{} {
 	return v
 }
 
+func (tok *Token) GetRHSParam(k string) interface{} {
+	node, ok := tok.node.(*BetaMemory)
+	if !ok {
+		return nil
+	}
+	return node.GetExecuteParam(k)
+}
+
 func (tok *Token) AllBinding() Env {
 	path := []*Token{}
 	t := tok
