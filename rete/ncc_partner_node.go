@@ -3,15 +3,15 @@ package rete
 import "container/list"
 
 type NccPartnerNode struct {
-	parent              IReteNode
-	children            *list.List
-	ncc_node            IReteNode
-	number_of_conjuncts int
-	new_result_buffer   *list.List
+	parent            IReteNode
+	children          *list.List
+	nccNode           IReteNode
+	numberOfConjuncts int
+	newResultBuffer   *list.List
 }
 
 func (node NccPartnerNode) GetNodeType() string {
-	return NCC_PARTNER_NODE
+	return NccPartnerNodeTy
 }
 func (node NccPartnerNode) GetParent() IReteNode {
 	return node.parent
@@ -23,24 +23,24 @@ func (node NccPartnerNode) GetChildren() *list.List {
 	return node.children
 }
 func (node NccPartnerNode) LeftActivation(t *Token, w *WME, b Env) {
-	ncc_node := node.ncc_node
-	new_result := make_token(node, t, w, b)
-	owners_t := t
-	owners_w := w
-	for i := 1; i <= node.number_of_conjuncts; i++ {
-		owners_w = owners_t.wme
-		owners_t = owners_t.parent
+	nccNode := node.nccNode
+	newResult := makeToken(node, t, w, b)
+	ownersT := t
+	ownersW := w
+	for i := 1; i <= node.numberOfConjuncts; i++ {
+		ownersW = ownersT.wme
+		ownersT = ownersT.parent
 	}
-	for e := ncc_node.GetItems().Front(); e != nil; e = e.Next() {
+	for e := nccNode.GetItems().Front(); e != nil; e = e.Next() {
 		item := e.Value.(*Token)
-		if item.parent == owners_t && item.wme == owners_w {
-			item.ncc_results.PushBack(item)
-			new_result.owner = item
-			item.delete_token_and_descendents()
+		if item.parent == ownersT && item.wme == ownersW {
+			item.nccResults.PushBack(item)
+			newResult.owner = item
+			item.deleteTokenAndDescendents()
 			return
 		}
 	}
-	node.new_result_buffer.PushBack(new_result)
+	node.newResultBuffer.PushBack(newResult)
 }
 func (node NccPartnerNode) RightActivation(w *WME) {
 }

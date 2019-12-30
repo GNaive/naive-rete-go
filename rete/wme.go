@@ -6,27 +6,27 @@ import (
 )
 
 type WME struct {
-	fields                [4]string
-	alpha_mems            *list.List
-	tokens                *list.List
-	negative_join_results *list.List
+	fields              [4]string
+	alphaMems           *list.List
+	tokens              *list.List
+	negativeJoinResults *list.List
 }
 
 func RemoveWME(w *WME) {
-	for e := w.alpha_mems.Front(); e != nil; e = e.Next() {
+	for e := w.alphaMems.Front(); e != nil; e = e.Next() {
 		amem := e.Value.(*AlphaMemory)
-		remove_by_value(amem.items, w)
+		removeByValue(amem.items, w)
 	}
 	for w.tokens != nil && w.tokens.Len() > 0 {
 		e := w.tokens.Front()
 		t := e.Value.(*Token)
-		t.delete_token_and_descendents()
+		t.deleteTokenAndDescendents()
 		w.tokens.Remove(e)
 	}
-	for e := w.negative_join_results.Front(); e != nil; e = e.Next() {
+	for e := w.negativeJoinResults.Front(); e != nil; e = e.Next() {
 		jr := e.Value.(*NegativeJoinResult)
-		remove_by_value(jr.owner.join_results, jr)
-		if jr.owner.join_results.Len() == 0 {
+		removeByValue(jr.owner.joinResults, jr)
+		if jr.owner.joinResults.Len() == 0 {
 			for i := jr.owner.node.GetChildren().Front(); i != nil; i = i.Next() {
 				child := i.Value.(IReteNode)
 				child.LeftActivation(jr.owner, nil, nil)
@@ -35,12 +35,12 @@ func RemoveWME(w *WME) {
 	}
 }
 
-func NewWME(class_name, id, attr, value string) *WME {
+func NewWME(className, id, attr, value string) *WME {
 	return &WME{
-		fields:                [4]string{class_name, id, attr, value},
-		alpha_mems:            list.New(),
-		tokens:                list.New(),
-		negative_join_results: list.New(),
+		fields:              [4]string{className, id, attr, value},
+		alphaMems:           list.New(),
+		tokens:              list.New(),
+		negativeJoinResults: list.New(),
 	}
 }
 

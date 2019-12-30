@@ -9,8 +9,8 @@ func TestNetworkAddWME(t *testing.T) {
 	n := NewNetwork()
 	c0 := NewHas("Object", "$x", "on", "$y")
 	c1 := NewHas("Object", "$y", "left_of", "$z")
-	am0 := n.build_or_share_alpha_memory(c0)
-	am1 := n.build_or_share_alpha_memory(c1)
+	am0 := n.buildOrShareAlphaMemory(c0)
+	am1 := n.buildOrShareAlphaMemory(c1)
 	wmes := []*WME{
 		NewWME("Object", "B1", "on", "B2"),
 		NewWME("Object", "B2", "left_of", "B3"),
@@ -27,7 +27,7 @@ func TestNetworkAddWME(t *testing.T) {
 func TestCase0(t *testing.T) {
 	n := NewNetwork()
 	env := make(Env)
-	env["F"] = func (network *Network, token *Token) {
+	env["F"] = func(network *Network, token *Token) {
 		x := token.GetBinding("x")
 		y := token.GetBinding("y")
 		z := token.GetBinding("z")
@@ -43,7 +43,7 @@ func TestCase0(t *testing.T) {
 	m := make(map[string]interface{})
 	m["dummy"] = 1
 	n.AddProduction(NewLHS(c0, c1, c2), RHS{
-		tmpl: `F`,
+		tmpl:  `F`,
 		Extra: m,
 	})
 	wmes := []*WME{
@@ -73,7 +73,7 @@ func TestCase0(t *testing.T) {
 
 func TestNegativeNode(t *testing.T) {
 	n := NewNetwork()
-	c0 := NewHas("Object","$x", "on", "$y")
+	c0 := NewHas("Object", "$x", "on", "$y")
 	c1 := NewNeg("Object", "$y", "color", "blue")
 	p := n.AddProduction(NewLHS(c0, c1), NewRHS())
 
@@ -102,14 +102,14 @@ func TestNegativeNode(t *testing.T) {
 
 func TestNccNode(t *testing.T) {
 	n := NewNetwork()
-	c0 := NewHas("Object","$x", "on", "$y")
-	c1 := NewHas("Object","$y", "left_of", "$z")
-	c2 := NewHas("Object","$z", "color", "red")
-	c3 := NewHas("Object","$z", "on", "$w")
+	c0 := NewHas("Object", "$x", "on", "$y")
+	c1 := NewHas("Object", "$y", "left_of", "$z")
+	c2 := NewHas("Object", "$z", "color", "red")
+	c3 := NewHas("Object", "$z", "on", "$w")
 	p := n.AddProduction(NewLHS(c0, c1, NewNccRule(c2, c3)), NewRHS())
 	wmes := []*WME{
-		NewWME("Object","B1", "on", "B2"),
-		NewWME("Object","B1", "on", "B3"),
+		NewWME("Object", "B1", "on", "B2"),
+		NewWME("Object", "B1", "on", "B3"),
 		NewWME("Object", "B1", "color", "red"),
 		NewWME("Object", "B2", "on", "table"),
 		NewWME("Object", "B2", "left_of", "B3"),
@@ -157,7 +157,7 @@ func TestFromXML(t *testing.T) {
 	</data>`
 	n := NewNetwork()
 	env := make(Env)
-	env["Handler"] = func (network *Network, token *Token) {
+	env["Handler"] = func(network *Network, token *Token) {
 		fmt.Println(token)
 	}
 	_, err := n.AddProductionFromXML(data)

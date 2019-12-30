@@ -1,8 +1,8 @@
 package rete
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func F(a string, b string) map[string]interface{} {
@@ -13,7 +13,7 @@ func F(a string, b string) map[string]interface{} {
 }
 
 func TestEvalFromString(t *testing.T) {
-	env := make(map[string]interface {})
+	env := make(map[string]interface{})
 	env["F"] = F
 	result, err := EvalFromString(`F("hello", "world")`, env)
 	if err != nil {

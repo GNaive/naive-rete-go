@@ -1,20 +1,20 @@
 package rete
 
 const (
-	CLASS_NAME = iota
-	IDENTIFIER
-	ATTRIBUTE
-	VALUE
-	NO_TEST
+	ClassName = iota
+	Identifier
+	Attribute
+	Value
+	NoTest
 )
 
 const (
-	BETA_MEMORY_NODE = "beta_memory"
-	JOIN_NODE        = "join_node"
-	NEGATIVE_NODE    = "negative_node"
-	NCC_NODE         = "ncc_node"
-	NCC_PARTNER_NODE = "ncc_parter_node"
-	FILTER_NODE      = "filter_node"
+	BetaMemoryNodeTy = "beta_memory"
+	JoinNodeTy       = "join_node"
+	NegativeNodeTy   = "negative_node"
+	NccNodeTy        = "ncc_node"
+	NccPartnerNodeTy = "ncc_parter_node"
+	FilterNodeTy     = "filter_node"
 )
 
-var FIELDS = []int{CLASS_NAME, IDENTIFIER, ATTRIBUTE, VALUE}
+var FIELDS = []int{ClassName, Identifier, Attribute, Value}

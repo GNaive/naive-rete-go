@@ -1,14 +1,14 @@
 package rete
 
 import (
+	"errors"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"strconv"
 	"reflect"
-	"errors"
-	"fmt"
 	"runtime/debug"
+	"strconv"
 )
 
 func EvalFromString(s string, env Env) (result []reflect.Value, err error) {
@@ -93,17 +93,17 @@ func EvalIdent(exp *ast.Ident, env Env) (result []reflect.Value, err error) {
 }
 
 func EvalBinaryExpr(exp *ast.BinaryExpr, env map[string]interface{}) (result []reflect.Value, err error) {
-	left_result, err := Eval(exp.X, env)
+	leftResult, err := Eval(exp.X, env)
 	if err != nil {
 		return
 	}
-	right_result, err := Eval(exp.Y, env)
+	rightResult, err := Eval(exp.Y, env)
 	if err != nil {
 		return
 	}
 	var r interface{}
-	left := value2float(left_result[0])
-	right := value2float(right_result[0])
+	left := value2float(leftResult[0])
+	right := value2float(rightResult[0])
 
 	switch exp.Op {
 	case token.GTR:

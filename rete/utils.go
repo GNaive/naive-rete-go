@@ -2,10 +2,11 @@ package rete
 
 import (
 	"container/list"
-	"github.com/beevik/etree"
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
+
+	"github.com/beevik/etree"
 )
 
 func contain(l *list.List, value interface{}) *list.Element {
@@ -20,7 +21,7 @@ func contain(l *list.List, value interface{}) *list.Element {
 	return nil
 }
 
-func remove_by_value(l *list.List, value interface{}) bool {
+func removeByValue(l *list.List, value interface{}) bool {
 	if e := contain(l, value); e != nil {
 		l.Remove(e)
 		return true
@@ -66,10 +67,10 @@ func XMLParseLHS(root *etree.Element) LHS {
 	for _, e := range root.ChildElements() {
 		switch e.Tag {
 		case "has", "neg":
-			class_name, identity, attribute, value := "", "", "", ""
+			className, identity, attribute, value := "", "", "", ""
 			for _, attr := range e.Attr {
 				if attr.Key == "classname" {
-					class_name = attr.Value
+					className = attr.Value
 				} else if attr.Key == "identifier" {
 					identity = attr.Value
 				} else if attr.Key == "attribute" {
@@ -80,9 +81,9 @@ func XMLParseLHS(root *etree.Element) LHS {
 			}
 			var has Has
 			if e.Tag == "has" {
-				has = NewHas(class_name, identity, attribute, value)
+				has = NewHas(className, identity, attribute, value)
 			} else {
-				has = NewNeg(class_name, identity, attribute, value)
+				has = NewNeg(className, identity, attribute, value)
 			}
 			r.items = append(r.items, has)
 		case "filter":
@@ -97,7 +98,7 @@ func XMLParseLHS(root *etree.Element) LHS {
 	return r
 }
 
-func FromJSON (s string) (r []Production, err error) {
+func FromJSON(s string) (r []Production, err error) {
 	root := make(map[string]interface{})
 	err = json.Unmarshal([]byte(s), &root)
 	if err != nil {
@@ -117,10 +118,10 @@ func FromJSON (s string) (r []Production, err error) {
 			message := fmt.Sprintf("production not Object: %s", p)
 			return r, errors.New(message)
 		}
-		rhs_obj, ok := p["rhs"].(map[string]interface{})
-		production.rhs.Extra = rhs_obj
-		if rhs_obj["tmpl"] != nil {
-			production.rhs.tmpl = rhs_obj["tmpl"].(string)
+		rhsObj, ok := p["rhs"].(map[string]interface{})
+		production.rhs.Extra = rhsObj
+		if rhsObj["tmpl"] != nil {
+			production.rhs.tmpl = rhsObj["tmpl"].(string)
 		}
 		if !ok {
 			message := fmt.Sprintf("rhs not Object: %s", p["rhs"])
@@ -140,7 +141,7 @@ func FromJSON (s string) (r []Production, err error) {
 	return r, err
 }
 
-func JSONParseLHS (lhs []interface{}) (r LHS, err error) {
+func JSONParseLHS(lhs []interface{}) (r LHS, err error) {
 	for _, e := range lhs {
 		cond, ok := e.(map[string]interface{})
 		if !ok {
@@ -149,11 +150,11 @@ func JSONParseLHS (lhs []interface{}) (r LHS, err error) {
 		}
 		switch cond["tag"] {
 		case "has", "neg":
-			class, ok_0 := cond["classname"].(string)
-			id, ok_1 := cond["identifier"].(string)
-			attr, ok_2 := cond["attribute"].(string)
-			value, ok_3 := cond["value"].(string)
-			if !ok_0 || !ok_1 || !ok_2 || !ok_3 {
+			class, ok0 := cond["classname"].(string)
+			id, ok1 := cond["identifier"].(string)
+			attr, ok2 := cond["attribute"].(string)
+			value, ok3 := cond["value"].(string)
+			if !ok0 || !ok1 || !ok2 || !ok3 {
 				message := fmt.Sprintf("condition missing fields: %s", cond)
 				return r, errors.New(message)
 			}
@@ -168,7 +169,7 @@ func JSONParseLHS (lhs []interface{}) (r LHS, err error) {
 				message := fmt.Sprintf("filter tmpl not string: %s", cond)
 				return r, errors.New(message)
 			}
-			r.items = append(r.items, Filter{tmpl:tmpl})
+			r.items = append(r.items, Filter{tmpl: tmpl})
 		case "ncc":
 			ncc, ok := cond["items"].([]interface{})
 			if !ok {
@@ -176,10 +177,10 @@ func JSONParseLHS (lhs []interface{}) (r LHS, err error) {
 				return r, errors.New(message)
 			}
 			_rule, err := JSONParseLHS(ncc)
-			_rule.negative = true
 			if err != nil {
 				return r, err
 			}
+			_rule.negative = true
 			r.items = append(r.items, _rule)
 		default:
 			message := fmt.Sprintf("tag error: %s", cond["tag"])
