@@ -12,7 +12,7 @@ type BetaMemory struct {
 }
 
 func (node BetaMemory) GetNodeType() string {
-	return BETA_MEMORY_NODE
+	return BetaMemoryNodeTy
 }
 
 func (node BetaMemory) GetItems() *list.List {
@@ -28,10 +28,10 @@ func (node BetaMemory) GetChildren() *list.List {
 }
 
 func (node *BetaMemory) LeftActivation(t *Token, w *WME, b Env) {
-	new_token := make_token(node, t, w, b)
-	node.items.PushBack(new_token)
+	newToken := makeToken(node, t, w, b)
+	node.items.PushBack(newToken)
 	for e := node.children.Front(); e != nil; e = e.Next() {
-		e.Value.(IReteNode).LeftActivation(new_token, nil, nil)
+		e.Value.(IReteNode).LeftActivation(newToken, nil, nil)
 	}
 }
 

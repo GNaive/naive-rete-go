@@ -9,23 +9,23 @@ import (
 type Env map[string]interface{}
 
 type Token struct {
-	parent       *Token
-	wme          *WME
-	node         IReteNode
-	children     *list.List
-	join_results *list.List // used in negative nodes
-	ncc_results  *list.List
-	owner        *Token
-	binding      Env
+	parent      *Token
+	wme         *WME
+	node        IReteNode
+	children    *list.List
+	joinResults *list.List // used in negative nodes
+	nccResults  *list.List
+	owner       *Token
+	binding     Env
 }
 
-func (t *Token) get_wmes() []*WME {
-	ret := []*WME{}
+func (tok *Token) get_wmes() []*WME {
+	var ret []*WME
 	_ws := list.New()
-	_ws.PushFront(t.wme)
-	for t.parent != nil {
-		t = t.parent
-		_ws.PushFront(t.wme)
+	_ws.PushFront(tok.wme)
+	for tok.parent != nil {
+		tok = tok.parent
+		_ws.PushFront(tok.wme)
 	}
 	for e := _ws.Front(); e != nil; e = e.Next() {
 		ret = append(ret, e.Value.(*WME))
@@ -33,7 +33,7 @@ func (t *Token) get_wmes() []*WME {
 	return ret
 }
 
-func make_token(node IReteNode, parent *Token, w *WME, b Env) *Token {
+func makeToken(node IReteNode, parent *Token, w *WME, b Env) *Token {
 	tok := &Token{
 		parent:   parent,
 		wme:      w,
@@ -50,19 +50,19 @@ func make_token(node IReteNode, parent *Token, w *WME, b Env) *Token {
 	return tok
 }
 
-func (tok *Token) delete_token_and_descendents() {
+func (tok *Token) deleteTokenAndDescendents() {
 	for tok.children != nil && tok.children.Len() > 0 {
 		e := tok.children.Front()
 		child := e.Value.(*Token)
-		child.delete_token_and_descendents()
+		child.deleteTokenAndDescendents()
 		tok.children.Remove(e)
 	}
-	remove_by_value(tok.node.GetItems(), tok)
+	removeByValue(tok.node.GetItems(), tok)
 	if tok.wme != nil {
-		remove_by_value(tok.wme.tokens, tok)
+		removeByValue(tok.wme.tokens, tok)
 	}
 	if tok.parent != nil {
-		remove_by_value(tok.parent.children, tok)
+		removeByValue(tok.parent.children, tok)
 	}
 }
 
@@ -100,7 +100,7 @@ func (tok *Token) GetRHSParam(k string) interface{} {
 }
 
 func (tok *Token) AllBinding() Env {
-	path := []*Token{}
+	var path []*Token
 	t := tok
 	for t != nil {
 		path = append(path, t)

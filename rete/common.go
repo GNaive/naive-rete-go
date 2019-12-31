@@ -1,11 +1,11 @@
 package rete
 
-func is_var(v string) bool {
+func isVar(v string) bool {
 	return len(v) > 0 && v[0] == '$'
 }
 
-func var_key(v string) string {
-	if is_var(v) {
+func varKey(v string) string {
+	if isVar(v) {
 		return v[1:]
 	}
 	return ""
@@ -22,7 +22,7 @@ type LHS struct {
 }
 
 type RHS struct {
-	tmpl string
+	tmpl  string
 	Extra map[string]interface{}
 }
 
@@ -44,9 +44,9 @@ func (has Has) contain(s string) int {
 	return -1
 }
 
-func (has Has) test_wme(w *WME) bool {
+func (has Has) testWme(w *WME) bool {
 	for idx, v := range has.fields {
-		if is_var(v) {
+		if isVar(v) {
 			continue
 		}
 		if v != w.fields[idx] {
@@ -56,16 +56,16 @@ func (has Has) test_wme(w *WME) bool {
 	return true
 }
 
-func NewHas(class_name, id, attr, value string) Has {
+func NewHas(className, id, attr, value string) Has {
 	return Has{
-		fields:   [4]string{class_name, id, attr, value},
+		fields:   [4]string{className, id, attr, value},
 		negative: false,
 	}
 }
 
-func NewNeg(class_name, id, attr, value string) Has {
+func NewNeg(className, id, attr, value string) Has {
 	return Has{
-		fields:   [4]string{class_name, id, attr, value},
+		fields:   [4]string{className, id, attr, value},
 		negative: true,
 	}
 }
@@ -78,7 +78,7 @@ func NewLHS(items ...interface{}) LHS {
 
 func NewRHS() RHS {
 	return RHS{
-		tmpl: "",
+		tmpl:  "",
 		Extra: make(map[string]interface{}),
 	}
 }

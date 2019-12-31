@@ -3,9 +3,9 @@ package rete
 import "container/list"
 
 type TestAtJoinNode struct {
-	field_of_arg1            int
-	condition_number_of_arg2 int
-	field_of_arg2            int
+	fieldOfArg1           int
+	conditionNumberOfArg2 int
+	fieldOfArg2           int
 }
 
 type JoinNode struct {
@@ -17,7 +17,7 @@ type JoinNode struct {
 }
 
 func (node JoinNode) GetNodeType() string {
-	return JOIN_NODE
+	return JoinNodeTy
 }
 func (node JoinNode) GetItems() *list.List {
 	return nil
@@ -31,8 +31,8 @@ func (node JoinNode) GetChildren() *list.List {
 func (node *JoinNode) RightActivation(w *WME) {
 	parent := node.parent
 	// dummy join
-	if parent.GetParent().GetNodeType() == BETA_MEMORY_NODE {
-		b := node.make_binding(w)
+	if parent.GetParent().GetNodeType() == BetaMemoryNodeTy {
+		b := node.makeBinding(w)
 		for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 			child := _e.Value.(IReteNode)
 			child.LeftActivation(nil, w, b)
@@ -41,8 +41,8 @@ func (node *JoinNode) RightActivation(w *WME) {
 	}
 	for e := parent.GetItems().Front(); e != nil; e = e.Next() {
 		t := e.Value.(*Token)
-		if node.perform_join_tests(t, w) {
-			b := node.make_binding(w)
+		if node.performJoinTests(t, w) {
+			b := node.makeBinding(w)
 			for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 				child := _e.Value.(IReteNode)
 				child.LeftActivation(t, w, b)
@@ -53,8 +53,8 @@ func (node *JoinNode) RightActivation(w *WME) {
 func (node *JoinNode) LeftActivation(t *Token, w *WME, b Env) {
 	for e := node.amem.items.Front(); e != nil; e = e.Next() {
 		w := e.Value.(*WME)
-		if node.perform_join_tests(t, w) {
-			b := node.make_binding(w)
+		if node.performJoinTests(t, w) {
+			b := node.makeBinding(w)
 			for _e := node.children.Front(); _e != nil; _e = _e.Next() {
 				child := _e.Value.(IReteNode)
 				child.LeftActivation(t, w, b)
@@ -62,23 +62,23 @@ func (node *JoinNode) LeftActivation(t *Token, w *WME, b Env) {
 		}
 	}
 }
-func (node *JoinNode) perform_join_tests(t *Token, w *WME) bool {
+func (node *JoinNode) performJoinTests(t *Token, w *WME) bool {
 	for e := node.tests.Front(); e != nil; e = e.Next() {
 		test := e.Value.(*TestAtJoinNode)
-		arg1 := w.fields[test.field_of_arg1]
-		wme2 := t.get_wmes()[test.condition_number_of_arg2]
-		arg2 := wme2.fields[test.field_of_arg2]
+		arg1 := w.fields[test.fieldOfArg1]
+		wme2 := t.get_wmes()[test.conditionNumberOfArg2]
+		arg2 := wme2.fields[test.fieldOfArg2]
 		if arg1 != arg2 {
 			return false
 		}
 	}
 	return true
 }
-func (node *JoinNode) make_binding(w *WME) Env {
+func (node *JoinNode) makeBinding(w *WME) Env {
 	b := make(Env)
 	for idx, v := range node.has.fields {
-		if is_var(v) {
-			b[var_key(v)] = w.fields[idx]
+		if isVar(v) {
+			b[varKey(v)] = w.fields[idx]
 		}
 	}
 	return b

@@ -11,7 +11,7 @@ type FilterNode struct {
 }
 
 func (node FilterNode) GetNodeType() string {
-	return FILTER_NODE
+	return FilterNodeTy
 }
 func (node FilterNode) GetItems() *list.List {
 	return nil
